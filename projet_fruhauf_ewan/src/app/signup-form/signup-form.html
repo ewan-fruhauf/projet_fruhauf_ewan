@@ -1,0 +1,210 @@
+<div class="wrapper">
+  <div class="auth-card">
+
+    @if (!isSubmitted) {
+      <!-- PANNEAU GAUCHE : VISUEL & BRANDING -->
+      <div class="visual-pane">
+        <div class="mesh-glow mesh-1"></div>
+        <div class="mesh-glow mesh-2"></div>
+        
+        <div class="visual-content">
+          <div class="brand-tag">
+            <span class="pulsing-dot"></span>
+            CIRCUIT / CLOUD LAB
+          </div>
+
+          <h1>L’infrastructure, côté essentiel.</h1>
+          <p class="visual-desc">
+            Du premier commit au déploiement, gardez chaque environnement en mouvement.
+          </p>
+
+          <div class="glass-pill">
+            <div class="badge-icon">⚡</div>
+            <div>
+              <div class="pill-title">Systèmes en ligne</div>
+              <div class="pill-sub">Environnements · pipelines · déploiements</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANNEAU DROIT : FORMULAIRE -->
+      <div class="form-pane">
+        <div class="form-intro">
+          <h2>Créer un compte</h2>
+          <p>Renseignez vos identifiants pour démarrer.</p>
+        </div>
+
+        <form #form="ngForm" (ngSubmit)="onSubmit()" novalidate>
+          
+          <!-- Login -->
+          <div class="input-block">
+            <label for="login">Identifiant</label>
+            <div class="input-wrapper">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input 
+                type="text" 
+                id="login" 
+                name="login" 
+                [(ngModel)]="user.login" 
+                placeholder="nom.utilisateur" 
+                required>
+            </div>
+          </div>
+
+          <!-- Nom & Prénom en 2 colonnes -->
+          <div class="dual-row">
+            <div class="input-block">
+              <label for="nom">Nom</label>
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  id="nom" 
+                  name="nom" 
+                  [(ngModel)]="user.nom" 
+                  placeholder="Dupont" 
+                  required>
+              </div>
+            </div>
+
+            <div class="input-block">
+              <label for="prenom">Prénom</label>
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  id="prenom" 
+                  name="prenom" 
+                  [(ngModel)]="user.prenom" 
+                  placeholder="Alexandre" 
+                  required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="input-block">
+            <label for="email">Adresse email</label>
+            <div class="input-wrapper">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                [(ngModel)]="user.email" 
+                placeholder="alexandre@domaine.com" 
+                email 
+                required>
+            </div>
+          </div>
+
+          <!-- Mots de passe en 2 colonnes -->
+          <div class="dual-row">
+            <div class="input-block">
+              <label for="password">Mot de passe</label>
+              <div class="input-wrapper">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  [(ngModel)]="user.password" 
+                  placeholder="••••••••" 
+                  required>
+              </div>
+            </div>
+
+            <div class="input-block">
+              <label for="confirmPassword">Confirmation</label>
+              <div class="input-wrapper">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input 
+                  type="password" 
+                  id="confirmPassword" 
+                  name="confirmPassword" 
+                  [(ngModel)]="user.confirmPassword" 
+                  placeholder="••••••••" 
+                  required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alerte visuelle mot de passe -->
+          @if (user.confirmPassword && user.password !== user.confirmPassword) {
+            <div class="inline-warning">
+              <span>⚠️ Les mots de passe ne sont pas identiques</span>
+            </div>
+          }
+
+          <!-- BOUTON VERROUILLÉ SELON LES CONSIGNES DU TP -->
+          <button 
+            type="submit" 
+            class="action-btn" 
+            [disabled]="!form.valid || user.password !== user.confirmPassword">
+            Créer mon compte
+            <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+    } @else {
+
+      <!-- PAGE RÉCAPITULATIF STYLE PROFIL UTILISATEUR -->
+      <div class="success-pane">
+        <div class="check-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+
+        <h2>Compte configuré !</h2>
+        <p class="sub">Vos identifiants ont été validés par l'architecture Template-driven.</p>
+
+        <div class="profile-card">
+          <div class="profile-avatar">
+            {{ user.prenom.charAt(0).toUpperCase() }}{{ user.nom.charAt(0).toUpperCase() }}
+          </div>
+          
+          <div class="profile-details">
+            <div class="detail-row">
+              <span class="label">Identifiant</span>
+              <span class="val highlight">@{{ user.login }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Utilisateur</span>
+              <span class="val">{{ user.prenom }} {{ user.nom }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Email de contact</span>
+              <span class="val">{{ user.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Statut</span>
+              <span class="status-tag">Actif</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="back-link" (click)="onReset()">
+          ← Réinitialiser et modifier
+        </button>
+      </div>
+
+    }
+
+  </div>
+</div>
