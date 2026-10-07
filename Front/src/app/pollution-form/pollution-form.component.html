@@ -1,0 +1,71 @@
+<form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()">
+    
+  <div class="input-group">
+    <input type="text" formControlName="titre" placeholder=" " id="titre">
+    <label for="titre">TITRE DE L'ANOMALIE</label>
+    <div class="error" *ngIf="pollutionForm.get('titre')?.invalid && pollutionForm.get('titre')?.touched">
+      Titre requis
+    </div>
+  </div>
+
+  <div class="input-group">
+    <select formControlName="type" id="type">
+      <option value="" disabled selected>SÉLECTIONNER LE TYPE</option>
+      <option *ngFor="let t of pollutionTypes" [value]="t">{{t | uppercase}}</option>
+    </select>
+    <div class="error" *ngIf="pollutionForm.get('type')?.invalid && pollutionForm.get('type')?.touched">
+      Type requis
+    </div>
+  </div>
+
+  <div class="input-group">
+    <textarea formControlName="description" placeholder=" " id="desc" rows="4"></textarea>
+    <label for="desc">DESCRIPTION</label>
+    <div class="error" *ngIf="pollutionForm.get('description')?.invalid && pollutionForm.get('description')?.touched">
+      Description requise
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="input-group">
+      <input type="text" formControlName="lieu" placeholder=" " id="lieu">
+      <label for="lieu">SECTEUR (LIEU)</label>
+      <div class="error" *ngIf="pollutionForm.get('lieu')?.invalid && pollutionForm.get('lieu')?.touched">
+        Lieu requis
+      </div>
+    </div>
+    <div class="input-group date-group">
+      <input type="date" formControlName="dateObservation" id="date">
+      <label for="date">DATE</label>
+      <div class="error" *ngIf="pollutionForm.get('dateObservation')?.invalid && pollutionForm.get('dateObservation')?.touched">
+        Date requise
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="input-group">
+      <input type="text" formControlName="latitude" placeholder=" " id="lat">
+      <label for="lat">LATITUDE (Ex: 48.8566)</label>
+      <div class="error" *ngIf="pollutionForm.get('latitude')?.invalid && pollutionForm.get('latitude')?.touched">
+        Latitude invalide
+      </div>
+    </div>
+    <div class="input-group">
+      <input type="text" formControlName="longitude" placeholder=" " id="lng">
+      <label for="lng">LONGITUDE (Ex: 2.3522)</label>
+      <div class="error" *ngIf="pollutionForm.get('longitude')?.invalid && pollutionForm.get('longitude')?.touched">
+        Longitude invalide
+      </div>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <input type="url" formControlName="photoUrl" placeholder=" " id="photo">
+    <label for="photo">PHOTO URL (OPTIONNEL)</label>
+  </div>
+
+  <button type="submit" class="cyber-button" [disabled]="pollutionForm.invalid">
+    DÉCLARER
+  </button>
+</form>

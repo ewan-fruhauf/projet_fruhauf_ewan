@@ -1,10 +1,16 @@
 services:
   - type: web
-    name: circuit-cloud-lab
+    name: tp01-fruhauf-ewan
     runtime: static
-    rootDir: projet_fruhauf_ewan
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist/projet_fruhauf_ewan/browser
+    rootDir: tp01
+    staticPublishPath: .
+
+  - type: web
+    name: tp02-fruhauf-ewan
+    runtime: static
+    rootDir: Front
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/front/browser
     routes:
       - type: rewrite
         source: /*

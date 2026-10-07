@@ -1,0 +1,60 @@
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+@media (max-width: 600px) {
+    .form-row { flex-direction: column; gap: 0; }
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+/* Form inputs are styled globally in styles.css now, but let's ensure labels work */
+label {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    transition: all 0.2s ease;
+    pointer-events: none;
+    font-size: 0.95rem;
+}
+
+input:focus ~ label, input:not(:placeholder-shown) ~ label,
+textarea:focus ~ label, textarea:not(:placeholder-shown) ~ label {
+    top: -10px;
+    left: 10px;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    background: var(--panel-bg);
+    padding: 0 5px;
+    font-weight: 500;
+}
+
+/* Specific fix for date and select fields if they don't use placeholder */
+select:focus ~ label, select:valid ~ label {
+    top: -10px;
+    left: 10px;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    background: var(--panel-bg);
+    padding: 0 5px;
+    font-weight: 500;
+}
+
+input[type="date"] {
+    color: var(--text-main);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: none; /* Removed the invert from cyberpunk theme */
+}
+
+.error {
+    color: var(--error-color);
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
