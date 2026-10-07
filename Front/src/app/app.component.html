@@ -1,0 +1,13 @@
+<div class="cyber-container">
+    <div class="glass-panel">
+        <header>
+            <h1 class="clean-title">SUIVI DE POLLUTION</h1>
+            <p class="subtitle">Module d'observation terrestre</p>
+        </header>
+
+        <main>
+            <app-pollution-form *ngIf="!isSubmitted" (formSubmit)="onFormSubmit($event)"></app-pollution-form>
+            <app-pollution-recap *ngIf="isSubmitted" [data]="formData"></app-pollution-recap>
+        </main>
+    </div>
+</div>
