@@ -1,0 +1,37 @@
+<div *ngIf="data">
+  <h2 class="success-text clean-title">DONNÉES TRANSMISES</h2>
+  
+  <div class="recap-content">
+    <div class="data-row">
+      <span class="data-label">TITRE:</span>
+      <span class="data-value">{{ data.titre }}</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">TYPE:</span>
+      <span class="data-value">{{ data.type }}</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">DESCRIPTION:</span>
+      <span class="data-value">{{ data.description }}</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">LIEU:</span>
+      <span class="data-value">{{ data.lieu }}</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">DATE:</span>
+      <span class="data-value">{{ data.dateObservation | date:'dd/MM/yyyy' }}</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">COORDONNÉES:</span>
+      <span class="data-value">[{{ data.latitude }}, {{ data.longitude }}]</span>
+    </div>
+  </div>
+
+  <div class="photo-container" *ngIf="data.photoUrl">
+    <span class="data-label">PREUVE VISUELLE:</span>
+    <img [src]="data.photoUrl" alt="Photo de la pollution" class="evidence-photo">
+  </div>
+
+  <button class="cyber-button" (click)="reload()">NOUVELLE DÉCLARATION</button>
+</div>

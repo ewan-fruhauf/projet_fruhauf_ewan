@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Cyber-Inscriptions</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cyber-container">
+        <!-- Overlay for visual effect -->
+        <div class="cyber-grid"></div>
+        
+        <!-- Form Section -->
+        <div id="form-section" class="glass-panel">
+            <h1 class="clean-title">INITIALISATION UTILISATEUR</h1>
+            <p class="subtitle">Portail d'accès sécurisé</p>
+            
+            <div id="error-message" class="error-hidden"></div>
+
+            <form id="signup-form">
+                <div class="form-row">
+                    <div class="input-group">
+                        <input type="text" id="login" name="login" required placeholder=" " minlength="3" pattern="^[a-zA-Z0-9_]+$">
+                        <label for="login">IDENTIFIANT</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="email" name="email" required placeholder=" ">
+                        <label for="email">ADRESSE EMAIL</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <input type="password" id="password" name="password" required placeholder=" " minlength="8">
+                        <label for="password">MOT DE PASSE</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="confirm-password" name="confirm-password" required placeholder=" ">
+                        <label for="confirm-password">CONFIRMATION</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <input type="text" id="nom" name="nom" required placeholder=" ">
+                        <label for="nom">NOM</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="prenom" name="prenom" required placeholder=" ">
+                        <label for="prenom">PRÉNOM</label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="adresse" name="adresse" required placeholder=" ">
+                    <label for="adresse">ADRESSE PHYSIQUE</label>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <input type="tel" id="telephone" name="telephone" required placeholder=" " pattern="[0-9]{10}">
+                        <label for="telephone">TÉLÉPHONE</label>
+                    </div>
+                    <div class="input-group date-group">
+                        <input type="date" id="naissance" name="naissance" required>
+                        <label for="naissance" class="date-label">DATE DE NAISSANCE</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="cyber-button">
+                    <span class="btn-text">S'INSCRIRE</span>
+                    <span class="btn-glitch"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Recap Section -->
+        <div id="recap-section" class="glass-panel hidden">
+            <h1 class="clean-title success-text">UTILISATEUR VÉRIFIÉ</h1>
+            <p class="subtitle">Bienvenue sur le réseau</p>
+            
+            <div class="recap-content">
+                <div class="data-row">
+                    <span class="data-label">IDENTIFIANT:</span>
+                    <span id="recap-login" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">NOM:</span>
+                    <span id="recap-nom" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">PRÉNOM:</span>
+                    <span id="recap-prenom" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">EMAIL:</span>
+                    <span id="recap-email" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">ADRESSE:</span>
+                    <span id="recap-adresse" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">TÉLÉPHONE:</span>
+                    <span id="recap-telephone" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">DATE DE NAISSANCE:</span>
+                    <span id="recap-naissance" class="data-value"></span>
+                </div>
+            </div>
+            
+            <button id="reboot-btn" class="cyber-button secondary">
+                <span class="btn-text">RETOUR À L'ACCUEIL</span>
+            </button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
