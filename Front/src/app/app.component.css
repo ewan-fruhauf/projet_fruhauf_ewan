@@ -1,0 +1,35 @@
+.exercise-nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-dim, #94a3b8);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(10px);
+}
+
+.nav-tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.nav-tab.active {
+  background: var(--primary-gradient, linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px -3px var(--primary-glow, rgba(139, 92, 246, 0.5));
+  font-weight: 600;
+}

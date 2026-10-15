@@ -1,13 +1,47 @@
 <div class="cyber-container">
-    <div class="glass-panel">
-        <header>
-            <h1 class="clean-title">SUIVI DE POLLUTION</h1>
-            <p class="subtitle">Module d'observation terrestre</p>
-        </header>
+  
+  <!-- Sélecteur d'onglets pour naviguer entre l'Exercice 02 et le TP 02 -->
+  <nav class="exercise-nav" aria-label="Navigation exercices">
+    <button 
+      type="button" 
+      class="nav-tab" 
+      [class.active]="activeTab() === 'ex02'" 
+      (click)="selectTab('ex02')">
+      👤 Exercice 02 — Service Client (Sign Up)
+    </button>
+    <button 
+      type="button" 
+      class="nav-tab" 
+      [class.active]="activeTab() === 'tp02'" 
+      (click)="selectTab('tp02')">
+      🌱 TP 02 — Suivi de Pollution
+    </button>
+  </nav>
 
-        <main>
-            <app-pollution-form *ngIf="!isSubmitted" (formSubmit)="onFormSubmit($event)"></app-pollution-form>
-            <app-pollution-recap *ngIf="isSubmitted" [data]="formData"></app-pollution-recap>
-        </main>
-    </div>
+  <div class="glass-panel">
+    
+    <!-- En-tête pour l'Exercice 02 -->
+    <header *ngIf="activeTab() === 'ex02'">
+      <h1 class="clean-title">EXERCICE 02 — SERVICE CLIENT</h1>
+      <p class="subtitle">Composant d'inscription, injection de dépendance & HttpClient</p>
+    </header>
+
+    <!-- En-tête pour le TP 02 -->
+    <header *ngIf="activeTab() === 'tp02'">
+      <h1 class="clean-title">SUIVI DE POLLUTION</h1>
+      <p class="subtitle">Module d'observation terrestre</p>
+    </header>
+
+    <main>
+      <!-- VUE 1 : EXERCICE 02 - SERVICE CLIENT & SIGN UP -->
+      <app-client-signup *ngIf="activeTab() === 'ex02'"></app-client-signup>
+
+      <!-- VUE 2 : TP 02 - FORMULAIRE & RECAP POLLUTION -->
+      <ng-container *ngIf="activeTab() === 'tp02'">
+        <app-pollution-form *ngIf="!isSubmitted" (formSubmit)="onFormSubmit($event)"></app-pollution-form>
+        <app-pollution-recap *ngIf="isSubmitted" [data]="formData"></app-pollution-recap>
+      </ng-container>
+    </main>
+
+  </div>
 </div>
