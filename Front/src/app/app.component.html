@@ -1,47 +1,45 @@
 <div class="cyber-container">
-  
-  <!-- Sélecteur d'onglets pour naviguer entre l'Exercice 02 et le TP 02 -->
-  <nav class="exercise-nav" aria-label="Navigation exercices">
-    <button 
-      type="button" 
-      class="nav-tab" 
-      [class.active]="activeTab() === 'ex02'" 
-      (click)="selectTab('ex02')">
-      👤 Exercice 02 — Service Client (Sign Up)
-    </button>
-    <button 
-      type="button" 
-      class="nav-tab" 
-      [class.active]="activeTab() === 'tp02'" 
-      (click)="selectTab('tp02')">
-      🌱 TP 02 — Suivi de Pollution
-    </button>
-  </nav>
-
   <div class="glass-panel">
-    
-    <!-- En-tête pour l'Exercice 02 -->
-    <header *ngIf="activeTab() === 'ex02'">
-      <h1 class="clean-title">EXERCICE 02 — SERVICE CLIENT</h1>
-      <p class="subtitle">Composant d'inscription, injection de dépendance & HttpClient</p>
-    </header>
 
-    <!-- En-tête pour le TP 02 -->
-    <header *ngIf="activeTab() === 'tp02'">
-      <h1 class="clean-title">SUIVI DE POLLUTION</h1>
-      <p class="subtitle">Module d'observation terrestre</p>
-    </header>
+    <!-- ÉTAPE 1 : FORMULAIRE D'INSCRIPTION (affiché par défaut) -->
+    <ng-container *ngIf="!currentUser">
+      <header>
+        <h1 class="clean-title">PORTAIL D'ACCÈS</h1>
+        <p class="subtitle">Veuillez vous inscrire pour accéder au module de suivi de pollution</p>
+      </header>
 
-    <main>
-      <!-- VUE 1 : EXERCICE 02 - SERVICE CLIENT & SIGN UP -->
-      <app-client-signup *ngIf="activeTab() === 'ex02'"></app-client-signup>
+      <main>
+        <app-client-signup (signupSuccess)="onSignupSuccess($event)"></app-client-signup>
+      </main>
+    </ng-container>
 
-      <!-- VUE 2 : TP 02 - FORMULAIRE & RECAP POLLUTION -->
-      <ng-container *ngIf="activeTab() === 'tp02'">
+    <!-- ÉTAPE 2 : PLATEFORME DE SIGNALEMENT (affichée une fois inscrit) -->
+    <ng-container *ngIf="currentUser">
+      
+      <!-- Barre d'état utilisateur connecté -->
+      <div class="user-status-bar">
+        <div class="user-badge">
+          <span class="user-dot"></span>
+          <span class="user-name">
+            Agent connecté : <strong>{{ currentUser.prenom }} {{ currentUser.nom }}</strong>
+            <span class="user-login">&#64;{{ currentUser.login }}</span>
+          </span>
+        </div>
+        <button type="button" class="btn-logout" (click)="logout()" title="Se déconnecter">
+          Déconnexion
+        </button>
+      </div>
+
+      <header>
+        <h1 class="clean-title">SUIVI DE POLLUTION</h1>
+        <p class="subtitle">Module d'observation terrestre</p>
+      </header>
+
+      <main>
         <app-pollution-form *ngIf="!isSubmitted" (formSubmit)="onFormSubmit($event)"></app-pollution-form>
         <app-pollution-recap *ngIf="isSubmitted" [data]="formData"></app-pollution-recap>
-      </ng-container>
-    </main>
+      </main>
+    </ng-container>
 
   </div>
 </div>

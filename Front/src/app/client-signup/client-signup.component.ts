@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -23,6 +23,9 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
   styleUrls: ['./client-signup.component.css']
 })
 export class ClientSignupComponent {
+  // Émission de l'événement lors d'une inscription réussie
+  @Output() signupSuccess = new EventEmitter<ClientResponse>();
+
   // 1. Injection de dépendances moderne via inject() (recommandation Séance 3)
   private clientService = inject(ClientService);
   private fb = inject(FormBuilder);
@@ -77,6 +80,8 @@ export class ClientSignupComponent {
         this.isLoading.set(false);
         this.isSubmitted.set(true);
         this.apiResponse.set(response);
+        // Émission pour redirection automatique vers la plateforme
+        this.signupSuccess.emit(response);
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading.set(false);
@@ -101,11 +106,7 @@ export class ClientSignupComponent {
    */
   simulateMockSuccess(): void {
     const formValues = this.signupForm.value;
-    this.isLoading.set(false);
-    this.errorMessage.set(null);
-    this.httpStatusCode.set(201);
-    this.isSubmitted.set(true);
-    this.apiResponse.set({
+    const mockResponse: ClientResponse = {
       success: true,
       message: 'Utilisateur inscrit avec succès (Simulation)',
       user: {
@@ -116,7 +117,14 @@ export class ClientSignupComponent {
         prenom: formValues.prenom || 'Ewan',
         createdAt: new Date().toISOString()
       }
-    });
+    };
+
+    this.isLoading.set(false);
+    this.errorMessage.set(null);
+    this.httpStatusCode.set(201);
+    this.isSubmitted.set(true);
+    this.apiResponse.set(mockResponse);
+    this.signupSuccess.emit(mockResponse);
   }
 
   /**
