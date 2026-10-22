@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
-import { ClientResponse } from './models/client.model';
+import { routes } from './app.routes';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -10,6 +11,7 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
+        provideRouter(routes),
         provideHttpClient(),
         provideHttpClientTesting()
       ]
@@ -26,47 +28,24 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`devrait avoir le titre 'Front'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('Front');
-  });
-
-  it('devrait afficher le formulaire d\'inscription au démarrage (non connecté)', () => {
+  it('devrait contenir le titre TERRA SHIELD dans le template', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('PORTAIL D\'ACCÈS');
-    expect(compiled.querySelector('app-client-signup')).toBeTruthy();
+    expect(compiled.querySelector('.brand-title')?.textContent).toContain('TERRA SHIELD');
   });
 
-  it('devrait basculer vers la plateforme de signalement après inscription', () => {
+  it('devrait afficher les liens de navigation principaux', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
     fixture.detectChanges();
-
-    const mockResponse: ClientResponse = {
-      success: true,
-      message: 'Compte créé',
-      user: {
-        id: 42,
-        login: 'ewan_f',
-        email: 'ewan@test.com',
-        nom: 'Fruhauf',
-        prenom: 'Ewan'
-      }
-    };
-
-    app.onSignupSuccess(mockResponse);
-    fixture.detectChanges();
-
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('SUIVI DE POLLUTION');
-    expect(compiled.querySelector('.user-name')?.textContent).toContain('Ewan Fruhauf');
-    expect(compiled.querySelector('app-pollution-form')).toBeTruthy();
+    const navText = compiled.querySelector('.nav-links')?.textContent;
+    expect(navText).toContain('Signalements');
+    expect(navText).toContain('Déclarer');
+    expect(navText).toContain('Service Client');
   });
 
-  it('devrait revenir à l\'inscription lors de la déconnexion', () => {
+  it('devrait réinitialiser l\'utilisateur lors de la déconnexion', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     app.currentUser = { login: 'test', nom: 'Nom', prenom: 'Prenom' };
@@ -76,7 +55,5 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(app.currentUser).toBeNull();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('PORTAIL D\'ACCÈS');
   });
 });

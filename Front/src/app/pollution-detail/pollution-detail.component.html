@@ -1,0 +1,128 @@
+<div class="detail-container">
+
+  <!-- Fil d'Ariane et retour -->
+  <div class="nav-back-bar">
+    <a routerLink="/pollutions" class="btn-back">
+      <span>← Retour à la liste des signalements</span>
+    </a>
+  </div>
+
+  <!-- État de chargement -->
+  <div *ngIf="isLoading()" class="loading-state-box">
+    <div class="spinner-large"></div>
+    <p>Récupération de la fiche détaillée...</p>
+  </div>
+
+  <!-- État d'erreur -->
+  <div *ngIf="errorMessage() && !isLoading()" class="error-box">
+    <div class="error-icon">⚠️</div>
+    <h3>Signalement introuvable</h3>
+    <p>{{ errorMessage() }}</p>
+    <a routerLink="/pollutions" class="cyber-button btn-return">Retour aux signalements</a>
+  </div>
+
+  <!-- FICHE DÉTAILLÉE -->
+  <article *ngIf="pollution() as p" class="detail-card">
+    
+    <!-- En-tête de la fiche -->
+    <header class="detail-header">
+      <div class="header-meta">
+        <span class="detail-id">SIGNALEMENT #{{ p.id }}</span>
+        <div class="badges-row">
+          <span class="type-pill" [attr.data-type]="p.type">{{ p.type }}</span>
+          <span *ngIf="p.gravite" class="gravite-pill" [attr.data-gravite]="p.gravite">
+            Gravité : {{ p.gravite }}
+          </span>
+          <span *ngIf="p.statut" class="statut-pill" [attr.data-statut]="p.statut">
+            Statut : {{ p.statut }}
+          </span>
+        </div>
+      </div>
+
+      <h1 class="detail-title">{{ p.titre }}</h1>
+
+      <div class="detail-subline">
+        <span class="meta-item">
+          <span class="icon">📍</span>
+          <strong>{{ p.lieu }}</strong>
+        </span>
+        <span class="meta-item">
+          <span class="icon">📅</span>
+          Observé le {{ p.dateObservation | date:'dd MMMM yyyy' }}
+        </span>
+        <span *ngIf="p.auteur" class="meta-item">
+          <span class="icon">👤</span>
+          Rapporté par <em>{{ p.auteur }}</em>
+        </span>
+      </div>
+    </header>
+
+    <!-- Photo preuve si existante -->
+    <div *ngIf="p.photoUrl" class="detail-photo-section">
+      <div class="photo-wrapper">
+        <img [src]="p.photoUrl" [alt]="p.titre" class="detail-photo">
+        <span class="photo-caption">Preuve visuelle enregistrée lors de l'observation</span>
+      </div>
+    </div>
+
+    <!-- Description détaillée -->
+    <section class="detail-section">
+      <h3 class="section-heading">Description détaillée des faits</h3>
+      <div class="description-content">
+        <p>{{ p.description }}</p>
+      </div>
+    </section>
+
+    <!-- Coordonnées géographiques & Carte -->
+    <section class="detail-section">
+      <h3 class="section-heading">Localisation & Coordonnées GPS</h3>
+      
+      <div class="coords-box">
+        <div class="coord-item">
+          <span class="coord-label">LATITUDE</span>
+          <code class="coord-value">{{ p.latitude }}</code>
+        </div>
+        <div class="coord-divider">✕</div>
+        <div class="coord-item">
+          <span class="coord-label">LONGITUDE</span>
+          <code class="coord-value">{{ p.longitude }}</code>
+        </div>
+        <div class="coord-actions">
+          <a 
+            [href]="getMapsUrl(p.latitude, p.longitude)" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="btn-maps">
+            <span>🗺️ Ouvrir dans Google Maps ↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Métadonnées système -->
+    <footer class="detail-footer">
+      <div class="system-meta">
+        <span *ngIf="p.dateCreation">Enregistré dans le système le {{ p.dateCreation | date:'dd/MM/yyyy à HH:mm' }}</span>
+        <span>•</span>
+        <span>Source : API REST Mockée</span>
+      </div>
+
+      <!-- Actions : Modifier / Supprimer -->
+      <div class="footer-actions">
+        <a [routerLink]="['/pollutions', p.id, 'edit']" class="cyber-button btn-edit-action">
+          ✏️ Modifier ce signalement
+        </a>
+        <button 
+          type="button" 
+          class="btn-delete-action" 
+          [disabled]="isDeleting()"
+          (click)="onDelete()">
+          <span *ngIf="!isDeleting()">🗑️ Supprimer le signalement</span>
+          <span *ngIf="isDeleting()">Suppression en cours...</span>
+        </button>
+      </div>
+    </footer>
+
+  </article>
+
+</div>

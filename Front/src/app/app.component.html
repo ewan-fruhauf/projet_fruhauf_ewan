@@ -1,45 +1,80 @@
-<div class="cyber-container">
-  <div class="glass-panel">
-
-    <!-- ÉTAPE 1 : FORMULAIRE D'INSCRIPTION (affiché par défaut) -->
-    <ng-container *ngIf="!currentUser">
-      <header>
-        <h1 class="clean-title">PORTAIL D'ACCÈS</h1>
-        <p class="subtitle">Veuillez vous inscrire pour accéder au module de suivi de pollution</p>
-      </header>
-
-      <main>
-        <app-client-signup (signupSuccess)="onSignupSuccess($event)"></app-client-signup>
-      </main>
-    </ng-container>
-
-    <!-- ÉTAPE 2 : PLATEFORME DE SIGNALEMENT (affichée une fois inscrit) -->
-    <ng-container *ngIf="currentUser">
-      
-      <!-- Barre d'état utilisateur connecté -->
-      <div class="user-status-bar">
-        <div class="user-badge">
-          <span class="user-dot"></span>
-          <span class="user-name">
-            Agent connecté : <strong>{{ currentUser.prenom }} {{ currentUser.nom }}</strong>
-            <span class="user-login">&#64;{{ currentUser.login }}</span>
-          </span>
+<div class="app-layout">
+  
+  <!-- NAVIGATION GLOBALE EN HAUT -->
+  <header class="main-navbar">
+    <div class="nav-brand">
+      <a routerLink="/pollutions" class="brand-link">
+        <span class="brand-logo">🛡️</span>
+        <div class="brand-text">
+          <span class="brand-title">TERRA SHIELD</span>
+          <span class="brand-sub">SURVEILLANCE & POLLUTION</span>
         </div>
-        <button type="button" class="btn-logout" (click)="logout()" title="Se déconnecter">
-          Déconnexion
-        </button>
+      </a>
+    </div>
+
+    <!-- Liens de navigation -->
+    <nav class="nav-links">
+      <a 
+        routerLink="/pollutions" 
+        routerLinkActive="active-link" 
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span>Signalements</span>
+      </a>
+
+      <a 
+        routerLink="/pollutions/new" 
+        routerLinkActive="active-link" 
+        class="nav-item">
+        <span class="nav-icon">＋</span>
+        <span>Déclarer</span>
+      </a>
+
+      <a 
+        routerLink="/signup" 
+        routerLinkActive="active-link" 
+        class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span>Service Client</span>
+      </a>
+    </nav>
+
+    <!-- Badge utilisateur connecté & Indicateur API -->
+    <div class="nav-user-section">
+      <div class="api-status-badge" [title]="'API configurée : ' + apiUrl">
+        <span class="pulse-dot"></span>
+        <span class="api-env-label">API Mockée (HTTP)</span>
       </div>
 
-      <header>
-        <h1 class="clean-title">SUIVI DE POLLUTION</h1>
-        <p class="subtitle">Module d'observation terrestre</p>
-      </header>
+      <div *ngIf="currentUser" class="user-pill">
+        <span class="user-avatar">🟢</span>
+        <span class="user-text">
+          {{ currentUser.prenom }} {{ currentUser.nom }}
+        </span>
+        <button type="button" class="btn-logout-mini" (click)="logout()" title="Déconnexion">
+          ✕
+        </button>
+      </div>
+    </div>
+  </header>
 
-      <main>
-        <app-pollution-form *ngIf="!isSubmitted" (formSubmit)="onFormSubmit($event)"></app-pollution-form>
-        <app-pollution-recap *ngIf="isSubmitted" [data]="formData"></app-pollution-recap>
-      </main>
-    </ng-container>
+  <!-- CONTENU PRINCIPAL (ROUTÉ) -->
+  <main class="app-content-wrapper">
+    <div class="cyber-container app-inner-container">
+      <div class="glass-panel main-panel">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </main>
 
-  </div>
+  <!-- PIED DE PAGE -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <span>TP 03 — Service de Gestion des Pollutions & Architecture Angular</span>
+      <span class="footer-sep">•</span>
+      <span>API Endpoint : <code>{{ apiUrl }}/pollutions</code></span>
+    </div>
+  </footer>
+
 </div>

@@ -104,4 +104,21 @@
   background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px; padding: 8px; font-size: 0.78rem; color: #c4b5fd; overflow-x: auto; font-family: monospace;
 }
-.actions-wrapper { margin-top: 14px; }
+.actions-wrapper { 
+  margin-top: 18px; 
+  display: flex; 
+  gap: 12px; 
+  justify-content: space-between; 
+  align-items: center; 
+  flex-wrap: wrap; 
+}
+.btn-goto {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin-top: 0;
+  padding: 10px 18px;
+}
+

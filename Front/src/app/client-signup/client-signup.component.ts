@@ -6,6 +6,8 @@ import { ClientService } from '../services/client.service';
 import { ClientSignUp, ClientResponse } from '../models/client.model';
 import { environment } from '../../environments/environment';
 
+import { Router, RouterModule } from '@angular/router';
+
 /**
  * Validateur personnalisé pour vérifier que le mot de passe et sa confirmation correspondent.
  */
@@ -18,11 +20,13 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
 @Component({
   selector: 'app-client-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './client-signup.component.html',
   styleUrls: ['./client-signup.component.css']
 })
 export class ClientSignupComponent {
+  private router = inject(Router);
+
   // Émission de l'événement lors d'une inscription réussie
   @Output() signupSuccess = new EventEmitter<ClientResponse>();
 
@@ -80,6 +84,9 @@ export class ClientSignupComponent {
         this.isLoading.set(false);
         this.isSubmitted.set(true);
         this.apiResponse.set(response);
+        if (response.user) {
+          sessionStorage.setItem('currentUser', JSON.stringify(response.user));
+        }
         // Émission pour redirection automatique vers la plateforme
         this.signupSuccess.emit(response);
       },
