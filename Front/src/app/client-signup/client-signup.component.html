@@ -37,7 +37,7 @@
             type="text" 
             id="client-login" 
             formControlName="login" 
-            placeholder="ex: ewan_f" 
+            placeholder="ex: agent_eco" 
             autocomplete="username">
         </div>
         <div class="field-error" *ngIf="signupForm.get('login')?.invalid && signupForm.get('login')?.touched">
@@ -55,7 +55,7 @@
               type="text" 
               id="client-nom" 
               formControlName="nom" 
-              placeholder="ex: Fruhauf" 
+              placeholder="ex: Dupont" 
               autocomplete="family-name">
           </div>
           <div class="field-error" *ngIf="signupForm.get('nom')?.invalid && signupForm.get('nom')?.touched">
@@ -70,7 +70,7 @@
               type="text" 
               id="client-prenom" 
               formControlName="prenom" 
-              placeholder="ex: Ewan" 
+              placeholder="ex: Alex" 
               autocomplete="given-name">
           </div>
           <div class="field-error" *ngIf="signupForm.get('prenom')?.invalid && signupForm.get('prenom')?.touched">
@@ -87,7 +87,7 @@
             type="email" 
             id="client-email" 
             formControlName="email" 
-            placeholder="ex: ewan@domaine.com" 
+            placeholder="ex: contact@domaine.com" 
             autocomplete="email">
         </div>
         <div class="field-error" *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">

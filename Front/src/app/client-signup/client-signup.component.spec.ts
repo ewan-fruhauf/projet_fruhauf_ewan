@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ClientSignupComponent } from './client-signup.component';
 import { ClientService } from '../services/client.service';
@@ -15,9 +16,10 @@ describe('ClientSignupComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ClientSignupComponent],
       providers: [
-        ClientService,
+        provideRouter([]),
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        ClientService
       ]
     }).compileComponents();
 
@@ -27,20 +29,20 @@ describe('ClientSignupComponent', () => {
     fixture.detectChanges();
   });
 
-  it('devrait créer le composant', () => {
+  it('devrait créer le composant d\'inscription', () => {
     expect(component).toBeTruthy();
   });
 
-  it('le formulaire devrait être invalide au démarrage', () => {
+  it('devrait initialiser un formulaire vide et invalide', () => {
     expect(component.signupForm.valid).toBeFalse();
   });
 
   it('devrait détecter la non-concordance des mots de passe', () => {
     component.signupForm.patchValue({
-      login: 'ewan_f',
-      email: 'ewan@example.com',
-      nom: 'Fruhauf',
-      prenom: 'Ewan',
+      login: 'agent_eco',
+      email: 'agent@example.com',
+      nom: 'Dupont',
+      prenom: 'Alex',
       password: 'password123',
       confirmPassword: 'differentPassword'
     });
@@ -51,10 +53,10 @@ describe('ClientSignupComponent', () => {
 
   it('le formulaire devrait être valide avec des champs corrects', () => {
     component.signupForm.patchValue({
-      login: 'ewan_f',
-      email: 'ewan@example.com',
-      nom: 'Fruhauf',
-      prenom: 'Ewan',
+      login: 'agent_eco',
+      email: 'agent@example.com',
+      nom: 'Dupont',
+      prenom: 'Alex',
       password: 'password123',
       confirmPassword: 'password123'
     });
@@ -68,20 +70,20 @@ describe('ClientSignupComponent', () => {
       message: 'Compte créé avec succès',
       user: {
         id: 1,
-        login: 'ewan_f',
-        email: 'ewan@example.com',
-        nom: 'Fruhauf',
-        prenom: 'Ewan'
+        login: 'agent_eco',
+        email: 'agent@example.com',
+        nom: 'Dupont',
+        prenom: 'Alex'
       }
     };
 
     spyOn(clientService, 'signUp').and.returnValue(of(mockResponse));
 
     component.signupForm.patchValue({
-      login: 'ewan_f',
-      email: 'ewan@example.com',
-      nom: 'Fruhauf',
-      prenom: 'Ewan',
+      login: 'agent_eco',
+      email: 'agent@example.com',
+      nom: 'Dupont',
+      prenom: 'Alex',
       password: 'password123',
       confirmPassword: 'password123'
     });
@@ -108,10 +110,10 @@ describe('ClientSignupComponent', () => {
     spyOn(clientService, 'signUp').and.returnValue(throwError(() => errorResponse));
 
     component.signupForm.patchValue({
-      login: 'ewan_f',
-      email: 'ewan@example.com',
-      nom: 'Fruhauf',
-      prenom: 'Ewan',
+      login: 'agent_eco',
+      email: 'agent@example.com',
+      nom: 'Dupont',
+      prenom: 'Alex',
       password: 'password123',
       confirmPassword: 'password123'
     });

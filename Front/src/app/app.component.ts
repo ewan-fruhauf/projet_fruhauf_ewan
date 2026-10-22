@@ -35,9 +35,9 @@ export class AppComponent implements OnInit {
     } else {
       // Utilisateur agent par défaut pour simplifier les tests et l'évaluation immédiate
       this.currentUser = {
-        login: 'agent_terrain',
-        nom: 'Fruhauf',
-        prenom: 'Ewan'
+        login: 'agent_eco',
+        nom: 'Martin',
+        prenom: 'Alex'
       };
       sessionStorage.setItem('currentUser', JSON.stringify(this.currentUser));
     }

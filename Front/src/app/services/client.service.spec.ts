@@ -32,10 +32,10 @@ describe('ClientService', () => {
 
   it('devrait envoyer une requête POST pour inscrire un utilisateur avec l\'URL d\'environnement', () => {
     const mockUser: ClientSignUp = {
-      login: 'ewan_f',
-      email: 'ewan@example.com',
-      nom: 'Fruhauf',
-      prenom: 'Ewan',
+      login: 'agent_eco',
+      email: 'test@example.com',
+      nom: 'Dupont',
+      prenom: 'Alex',
       password: 'secretPassword123'
     };
 

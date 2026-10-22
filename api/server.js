@@ -19,7 +19,7 @@ let pollutions = [
     latitude: 48.4047,
     longitude: 2.7016,
     photoUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=800&q=80',
-    auteur: 'Ewan Fruhauf',
+    auteur: 'Garde Forestier',
     gravite: 'Critique',
     statut: 'En attente',
     dateCreation: '2026-10-18T14:32:00.000Z'

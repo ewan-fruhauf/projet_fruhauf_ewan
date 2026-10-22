@@ -120,8 +120,8 @@ export class ClientSignupComponent {
         id: Math.floor(Math.random() * 9000) + 1000,
         login: formValues.login || 'utilisateur_test',
         email: formValues.email || 'test@example.com',
-        nom: formValues.nom || 'Fruhauf',
-        prenom: formValues.prenom || 'Ewan',
+        nom: formValues.nom || 'Dupont',
+        prenom: formValues.prenom || 'Alex',
         createdAt: new Date().toISOString()
       }
     };
