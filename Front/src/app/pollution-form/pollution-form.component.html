@@ -1,71 +1,216 @@
-<form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()">
+<div class="form-wrapper">
+
+  <!-- En-tête du formulaire -->
+  <div class="form-header-bar">
+    <div class="badge-tag">
+      {{ isEditMode() ? 'ÉDITION DU SIGNALEMENT #' + editId() : 'NOUVELLE DÉCLARATION' }}
+    </div>
+    <h2 class="form-title">
+      {{ isEditMode() ? 'Modifier le signalement' : 'Déclarer une anomalie écologique' }}
+    </h2>
+    <p class="form-subtitle">
+      {{ isEditMode() 
+          ? 'Mise à jour des informations transmises à l\'API REST' 
+          : 'Enregistrement géoréférencé avec transmission directe au service de traitement' }}
+    </p>
+  </div>
+
+  <!-- Alerte de chargement initial en mode édition -->
+  <div *ngIf="isFetchingInitial()" class="fetching-state">
+    <span class="spinner"></span>
+    <span>Chargement des données existantes...</span>
+  </div>
+
+  <!-- Alerte de succès -->
+  <div *ngIf="successMessage()" class="alert-box alert-success">
+    <span class="alert-icon">✓</span>
+    <span class="alert-text">{{ successMessage() }}</span>
+  </div>
+
+  <!-- Alerte d'erreur -->
+  <div *ngIf="errorMessage()" class="alert-box alert-error">
+    <span class="alert-icon">⚠️</span>
+    <span class="alert-text">{{ errorMessage() }}</span>
+  </div>
+
+  <form *ngIf="!isFetchingInitial()" [formGroup]="pollutionForm" (ngSubmit)="onSubmit()" novalidate>
     
-  <div class="input-group">
-    <input type="text" formControlName="titre" placeholder=" " id="titre">
-    <label for="titre">TITRE DE L'ANOMALIE</label>
-    <div class="error" *ngIf="pollutionForm.get('titre')?.invalid && pollutionForm.get('titre')?.touched">
-      Titre requis
-    </div>
-  </div>
-
-  <div class="input-group">
-    <select formControlName="type" id="type">
-      <option value="" disabled selected>SÉLECTIONNER LE TYPE</option>
-      <option *ngFor="let t of pollutionTypes" [value]="t">{{t | uppercase}}</option>
-    </select>
-    <div class="error" *ngIf="pollutionForm.get('type')?.invalid && pollutionForm.get('type')?.touched">
-      Type requis
-    </div>
-  </div>
-
-  <div class="input-group">
-    <textarea formControlName="description" placeholder=" " id="desc" rows="4"></textarea>
-    <label for="desc">DESCRIPTION</label>
-    <div class="error" *ngIf="pollutionForm.get('description')?.invalid && pollutionForm.get('description')?.touched">
-      Description requise
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="input-group">
-      <input type="text" formControlName="lieu" placeholder=" " id="lieu">
-      <label for="lieu">SECTEUR (LIEU)</label>
-      <div class="error" *ngIf="pollutionForm.get('lieu')?.invalid && pollutionForm.get('lieu')?.touched">
-        Lieu requis
+    <!-- TITRE -->
+    <div class="field-group">
+      <label for="titre">Titre de l'anomalie *</label>
+      <div class="input-container">
+        <input 
+          type="text" 
+          id="titre" 
+          formControlName="titre" 
+          placeholder="Ex: Décharge sauvage en bord de route">
+      </div>
+      <div class="field-error" *ngIf="pollutionForm.get('titre')?.invalid && pollutionForm.get('titre')?.touched">
+        <span *ngIf="pollutionForm.get('titre')?.errors?.['required']">Le titre est requis.</span>
+        <span *ngIf="pollutionForm.get('titre')?.errors?.['minlength']">Au moins 3 caractères requis.</span>
       </div>
     </div>
-    <div class="input-group date-group">
-      <input type="date" formControlName="dateObservation" id="date">
-      <label for="date">DATE</label>
-      <div class="error" *ngIf="pollutionForm.get('dateObservation')?.invalid && pollutionForm.get('dateObservation')?.touched">
-        Date requise
+
+    <!-- TYPE & GRAVITÉ en 2 colonnes -->
+    <div class="dual-row">
+      <div class="field-group">
+        <label for="type">Type de pollution *</label>
+        <div class="input-container">
+          <select id="type" formControlName="type">
+            <option value="" disabled>Sélectionnez un type</option>
+            <option *ngFor="let t of pollutionTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="field-error" *ngIf="pollutionForm.get('type')?.invalid && pollutionForm.get('type')?.touched">
+          Le type de pollution est obligatoire.
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="gravite">Niveau de gravité *</label>
+        <div class="input-container">
+          <select id="gravite" formControlName="gravite">
+            <option *ngFor="let g of graviteLevels" [value]="g">{{ g }}</option>
+          </select>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="form-row">
-    <div class="input-group">
-      <input type="text" formControlName="latitude" placeholder=" " id="lat">
-      <label for="lat">LATITUDE (Ex: 48.8566)</label>
-      <div class="error" *ngIf="pollutionForm.get('latitude')?.invalid && pollutionForm.get('latitude')?.touched">
-        Latitude invalide
+    <!-- STATUT & DATE en 2 colonnes -->
+    <div class="dual-row">
+      <div class="field-group">
+        <label for="statut">Statut du traitement *</label>
+        <div class="input-container">
+          <select id="statut" formControlName="statut">
+            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="dateObservation">Date d'observation *</label>
+        <div class="input-container">
+          <input 
+            type="date" 
+            id="dateObservation" 
+            formControlName="dateObservation">
+        </div>
+        <div class="field-error" *ngIf="pollutionForm.get('dateObservation')?.invalid && pollutionForm.get('dateObservation')?.touched">
+          La date d'observation est requise.
+        </div>
       </div>
     </div>
-    <div class="input-group">
-      <input type="text" formControlName="longitude" placeholder=" " id="lng">
-      <label for="lng">LONGITUDE (Ex: 2.3522)</label>
-      <div class="error" *ngIf="pollutionForm.get('longitude')?.invalid && pollutionForm.get('longitude')?.touched">
-        Longitude invalide
+
+    <!-- SECTEUR / LIEU -->
+    <div class="field-group">
+      <label for="lieu">Secteur / Lieu *</label>
+      <div class="input-container">
+        <input 
+          type="text" 
+          id="lieu" 
+          formControlName="lieu" 
+          placeholder="Ex: Forêt domaniale, Allée des Pins, Fontainebleau">
+      </div>
+      <div class="field-error" *ngIf="pollutionForm.get('lieu')?.invalid && pollutionForm.get('lieu')?.touched">
+        Le lieu est obligatoire.
       </div>
     </div>
-  </div>
 
-  <div class="input-group">
-    <input type="url" formControlName="photoUrl" placeholder=" " id="photo">
-    <label for="photo">PHOTO URL (OPTIONNEL)</label>
-  </div>
+    <!-- COORDONNÉES GPS (Latitude & Longitude) -->
+    <div class="dual-row">
+      <div class="field-group">
+        <label for="latitude">Latitude (ex: 48.8566) *</label>
+        <div class="input-container">
+          <input 
+            type="text" 
+            id="latitude" 
+            formControlName="latitude" 
+            placeholder="48.8566">
+        </div>
+        <div class="field-error" *ngIf="pollutionForm.get('latitude')?.invalid && pollutionForm.get('latitude')?.touched">
+          Latitude requise (format décimal, ex: 48.8566).
+        </div>
+      </div>
 
-  <button type="submit" class="cyber-button" [disabled]="pollutionForm.invalid">
-    DÉCLARER
-  </button>
-</form>
+      <div class="field-group">
+        <label for="longitude">Longitude (ex: 2.3522) *</label>
+        <div class="input-container">
+          <input 
+            type="text" 
+            id="longitude" 
+            formControlName="longitude" 
+            placeholder="2.3522">
+        </div>
+        <div class="field-error" *ngIf="pollutionForm.get('longitude')?.invalid && pollutionForm.get('longitude')?.touched">
+          Longitude requise (format décimal, ex: 2.3522).
+        </div>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="field-group">
+      <label for="description">Description détaillée *</label>
+      <div class="input-container">
+        <textarea 
+          id="description" 
+          formControlName="description" 
+          rows="4" 
+          placeholder="Précisez la nature des déchets, l'étendue estimée, les risques immédiats constatés..."></textarea>
+      </div>
+      <div class="field-error" *ngIf="pollutionForm.get('description')?.invalid && pollutionForm.get('description')?.touched">
+        <span *ngIf="pollutionForm.get('description')?.errors?.['required']">La description est requise.</span>
+        <span *ngIf="pollutionForm.get('description')?.errors?.['minlength']">Au moins 10 caractères requis.</span>
+      </div>
+    </div>
+
+    <!-- PHOTO URL & AUTEUR -->
+    <div class="dual-row">
+      <div class="field-group">
+        <label for="photoUrl">URL de la photo (optionnel)</label>
+        <div class="input-container">
+          <input 
+            type="url" 
+            id="photoUrl" 
+            formControlName="photoUrl" 
+            placeholder="https://images.unsplash.com/...">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="auteur">Agent / Auteur du signalement</label>
+        <div class="input-container">
+          <input 
+            type="text" 
+            id="auteur" 
+            formControlName="auteur" 
+            placeholder="Nom de l'agent">
+        </div>
+      </div>
+    </div>
+
+    <!-- BOUTONS D'ACTION -->
+    <div class="actions-wrapper">
+      <button 
+        type="button" 
+        class="btn-cancel" 
+        (click)="cancel()">
+        Annuler
+      </button>
+
+      <button 
+        type="submit" 
+        class="cyber-button btn-submit" 
+        [disabled]="pollutionForm.invalid || isLoading()">
+        <span *ngIf="!isLoading()">
+          {{ isEditMode() ? '💾 Enregistrer les modifications' : '🚀 Enregistrer le signalement' }}
+        </span>
+        <span *ngIf="isLoading()" class="loading-state">
+          <span class="spinner"></span>
+          Transmission à l'API...
+        </span>
+      </button>
+    </div>
+
+  </form>
+
+</div>

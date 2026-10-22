@@ -1,0 +1,232 @@
+<div class="list-container">
+  
+  <!-- En-tête avec compteur et bouton d'action -->
+  <div class="list-header">
+    <div class="header-titles">
+      <div class="badge-tag">OBSERVATOIRE GLOBAL</div>
+      <h2 class="section-title">Signalements de Pollutions</h2>
+      <p class="section-subtitle">
+        Gestion et suivi en temps réel des alertes environnementales enregistrées
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a routerLink="/pollutions/new" class="cyber-button btn-add">
+        <span class="btn-icon">＋</span>
+        <span>Nouveau signalement</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Notification de feedback (ex: suppression réussie) -->
+  <div *ngIf="feedbackMessage()" class="toast-feedback" [class.toast-success]="feedbackMessage()?.type === 'success'" [class.toast-error]="feedbackMessage()?.type === 'error'">
+    <span class="toast-icon">{{ feedbackMessage()?.type === 'success' ? '✓' : '⚠️' }}</span>
+    <span class="toast-text">{{ feedbackMessage()?.text }}</span>
+  </div>
+
+  <!-- BARRE DE FILTRES MULTI-CRITÈRES -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      
+      <!-- Critère 1 : Recherche par mot-clé -->
+      <div class="filter-item search-item">
+        <label for="search-input">Rechercher</label>
+        <div class="input-with-icon">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            id="search-input"
+            [ngModel]="searchTerm()" 
+            (ngModelChange)="searchTerm.set($event)"
+            placeholder="Titre, lieu, description...">
+          <button 
+            *ngIf="searchTerm()" 
+            type="button" 
+            class="clear-input-btn" 
+            (click)="searchTerm.set('')"
+            title="Effacer">✕</button>
+        </div>
+      </div>
+
+      <!-- Critère 2 : Filtre par Type -->
+      <div class="filter-item">
+        <label for="type-select">Type de pollution</label>
+        <select 
+          id="type-select" 
+          [ngModel]="selectedType()" 
+          (ngModelChange)="selectedType.set($event)">
+          <option value="">Tous les types</option>
+          <option *ngFor="let t of availableTypes" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <!-- Critère 3 : Filtre par Gravité -->
+      <div class="filter-item">
+        <label for="gravite-select">Gravité</label>
+        <select 
+          id="gravite-select" 
+          [ngModel]="selectedGravite()" 
+          (ngModelChange)="selectedGravite.set($event)">
+          <option value="">Toutes les gravités</option>
+          <option *ngFor="let g of graviteLevels" [value]="g">{{ g }}</option>
+        </select>
+      </div>
+
+      <!-- Critère 4 : Tri -->
+      <div class="filter-item">
+        <label for="sort-select">Trier par</label>
+        <select 
+          id="sort-select" 
+          [ngModel]="selectedSort()" 
+          (ngModelChange)="selectedSort.set($event)">
+          <option value="recent">Plus récent d'abord</option>
+          <option value="ancien">Plus ancien d'abord</option>
+          <option value="gravite">Gravité décroissante</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Barre d'état des filtres -->
+    <div class="filters-status-bar">
+      <div class="count-pill">
+        <span>Affichage : </span>
+        <strong>{{ filteredPollutions().length }}</strong>
+        <span>sur {{ pollutions().length }} signalement(s)</span>
+      </div>
+
+      <button 
+        *ngIf="searchTerm() || selectedType() || selectedGravite() || selectedSort() !== 'recent'"
+        type="button" 
+        class="btn-reset-filters" 
+        (click)="resetFilters()">
+        ↺ Réinitialiser les filtres
+      </button>
+    </div>
+  </div>
+
+  <!-- ÉTAT DE CHARGEMENT -->
+  <div *ngIf="isLoading()" class="loading-state-box">
+    <div class="spinner-large"></div>
+    <p>Chargement des signalements depuis l'API mockée...</p>
+  </div>
+
+  <!-- ÉTAT D'ERREUR -->
+  <div *ngIf="errorMessage() && !isLoading()" class="error-banner">
+    <div class="error-icon">⚠️</div>
+    <div class="error-text">
+      <strong>Erreur de communication :</strong>
+      <p>{{ errorMessage() }}</p>
+    </div>
+    <button type="button" class="btn-retry" (click)="loadPollutions()">Réessayer</button>
+  </div>
+
+  <!-- LISTE DES CARTES -->
+  <div *ngIf="!isLoading() && !errorMessage()" class="cards-grid">
+    
+    <!-- CARTE POLLUTION -->
+    <div 
+      *ngFor="let p of filteredPollutions()" 
+      class="pollution-card"
+      (click)="goToDetail(p.id)">
+      
+      <!-- Vignette photo / placeholder -->
+      <div class="card-media">
+        <img 
+          *ngIf="p.photoUrl" 
+          [src]="p.photoUrl" 
+          [alt]="p.titre" 
+          class="card-img"
+          loading="lazy">
+        <div *ngIf="!p.photoUrl" class="card-img-placeholder">
+          <span class="placeholder-icon">🌍</span>
+          <span class="placeholder-text">{{ p.type }}</span>
+        </div>
+
+        <!-- Badges superposés -->
+        <div class="media-badges">
+          <span class="type-badge" [attr.data-type]="p.type">{{ p.type }}</span>
+          <span *ngIf="p.gravite" class="gravite-badge" [attr.data-gravite]="p.gravite">{{ p.gravite }}</span>
+        </div>
+      </div>
+
+      <!-- Contenu de la carte -->
+      <div class="card-content">
+        <div class="card-meta-top">
+          <span class="card-id">#{{ p.id }}</span>
+          <span class="card-date">📅 {{ p.dateObservation | date:'dd/MM/yyyy' }}</span>
+        </div>
+
+        <h3 class="card-title" [title]="p.titre">{{ p.titre }}</h3>
+
+        <div class="card-location">
+          <span class="loc-icon">📍</span>
+          <span class="loc-text" [title]="p.lieu">{{ p.lieu }}</span>
+        </div>
+
+        <p class="card-desc">{{ p.description }}</p>
+
+        <!-- Coordonnées GPS -->
+        <div class="card-coords">
+          <code>GPS: {{ p.latitude }}, {{ p.longitude }}</code>
+        </div>
+      </div>
+
+      <!-- Barre d'actions en bas de carte -->
+      <div class="card-actions" (click)="$event.stopPropagation()">
+        <button 
+          type="button" 
+          class="action-btn btn-view" 
+          (click)="goToDetail(p.id)"
+          title="Consulter le détail">
+          <span>👁️ Détails</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="action-btn btn-edit" 
+          (click)="onEdit(p.id, $event)"
+          title="Modifier ce signalement">
+          <span>✏️ Modifier</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="action-btn btn-delete" 
+          [disabled]="deletingId() === p.id"
+          (click)="onDelete(p, $event)"
+          title="Supprimer ce signalement">
+          <span *ngIf="deletingId() !== p.id">🗑️ Supprimer</span>
+          <span *ngIf="deletingId() === p.id" class="btn-spinner"></span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ÉTAT VIDE : aucun résultat -->
+  <div *ngIf="!isLoading() && !errorMessage() && filteredPollutions().length === 0" class="empty-state-box">
+    <div class="empty-icon">🍃</div>
+    <h3>Aucun signalement trouvé</h3>
+    <p *ngIf="searchTerm() || selectedType() || selectedGravite()">
+      Aucun résultat ne correspond à vos critères de filtrage actuels.
+    </p>
+    <p *ngIf="!searchTerm() && !selectedType() && !selectedGravite()">
+      La base de données est actuellement vide. Déclarez une nouvelle anomalie pour débuter !
+    </p>
+    <div class="empty-actions">
+      <button 
+        *ngIf="searchTerm() || selectedType() || selectedGravite()" 
+        type="button" 
+        class="cyber-button btn-reset" 
+        (click)="resetFilters()">
+        Effacer les filtres
+      </button>
+      <a routerLink="/pollutions/new" class="cyber-button btn-create">
+        ＋ Déclarer une pollution
+      </a>
+    </div>
+  </div>
+
+</div>
