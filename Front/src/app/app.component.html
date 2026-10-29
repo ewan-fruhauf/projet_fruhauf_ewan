@@ -47,15 +47,17 @@
         <span class="api-env-label">API Mockée (HTTP)</span>
       </div>
 
-      <div *ngIf="currentUser" class="user-pill">
-        <span class="user-avatar">🟢</span>
-        <span class="user-text">
-          {{ currentUser.prenom }} {{ currentUser.nom }}
-        </span>
-        <button type="button" class="btn-logout-mini" (click)="logout()" title="Déconnexion">
-          ✕
-        </button>
-      </div>
+      @if (currentUser) {
+        <div class="user-pill">
+          <span class="user-avatar">🟢</span>
+          <span class="user-text">
+            {{ currentUser.prenom }} {{ currentUser.nom }}
+          </span>
+          <button type="button" class="btn-logout-mini" (click)="logout()" title="Déconnexion">
+            ✕
+          </button>
+        </div>
+      }
     </div>
   </header>
 

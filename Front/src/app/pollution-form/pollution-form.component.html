@@ -16,201 +16,255 @@
   </div>
 
   <!-- Alerte de chargement initial en mode édition -->
-  <div *ngIf="isFetchingInitial()" class="fetching-state">
-    <span class="spinner"></span>
-    <span>Chargement des données existantes...</span>
-  </div>
+  @if (isFetchingInitial()) {
+    <div class="fetching-state">
+      <span class="spinner"></span>
+      <span>Chargement des données existantes...</span>
+    </div>
+  }
 
   <!-- Alerte de succès -->
-  <div *ngIf="successMessage()" class="alert-box alert-success">
-    <span class="alert-icon">✓</span>
-    <span class="alert-text">{{ successMessage() }}</span>
-  </div>
+  @if (successMessage()) {
+    <div class="alert-box alert-success">
+      <span class="alert-icon">✓</span>
+      <span class="alert-text">{{ successMessage() }}</span>
+    </div>
+  }
 
   <!-- Alerte d'erreur -->
-  <div *ngIf="errorMessage()" class="alert-box alert-error">
-    <span class="alert-icon">⚠️</span>
-    <span class="alert-text">{{ errorMessage() }}</span>
-  </div>
-
-  <form *ngIf="!isFetchingInitial()" [formGroup]="pollutionForm" (ngSubmit)="onSubmit()" novalidate>
-    
-    <!-- TITRE -->
-    <div class="field-group">
-      <label for="titre">Titre de l'anomalie *</label>
-      <div class="input-container">
-        <input 
-          type="text" 
-          id="titre" 
-          formControlName="titre" 
-          placeholder="Ex: Décharge sauvage en bord de route">
-      </div>
-      <div class="field-error" *ngIf="pollutionForm.get('titre')?.invalid && pollutionForm.get('titre')?.touched">
-        <span *ngIf="pollutionForm.get('titre')?.errors?.['required']">Le titre est requis.</span>
-        <span *ngIf="pollutionForm.get('titre')?.errors?.['minlength']">Au moins 3 caractères requis.</span>
-      </div>
+  @if (errorMessage()) {
+    <div class="alert-box alert-error">
+      <span class="alert-icon">⚠️</span>
+      <span class="alert-text">{{ errorMessage() }}</span>
     </div>
+  }
 
-    <!-- TYPE & GRAVITÉ en 2 colonnes -->
-    <div class="dual-row">
+  @if (!isFetchingInitial()) {
+    <form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()" novalidate>
+      
+      <!-- TITRE -->
       <div class="field-group">
-        <label for="type">Type de pollution *</label>
-        <div class="input-container">
-          <select id="type" formControlName="type">
-            <option value="" disabled>Sélectionnez un type</option>
-            <option *ngFor="let t of pollutionTypes" [value]="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="field-error" *ngIf="pollutionForm.get('type')?.invalid && pollutionForm.get('type')?.touched">
-          Le type de pollution est obligatoire.
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label for="gravite">Niveau de gravité *</label>
-        <div class="input-container">
-          <select id="gravite" formControlName="gravite">
-            <option *ngFor="let g of graviteLevels" [value]="g">{{ g }}</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATUT & DATE en 2 colonnes -->
-    <div class="dual-row">
-      <div class="field-group">
-        <label for="statut">Statut du traitement *</label>
-        <div class="input-container">
-          <select id="statut" formControlName="statut">
-            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label for="dateObservation">Date d'observation *</label>
-        <div class="input-container">
-          <input 
-            type="date" 
-            id="dateObservation" 
-            formControlName="dateObservation">
-        </div>
-        <div class="field-error" *ngIf="pollutionForm.get('dateObservation')?.invalid && pollutionForm.get('dateObservation')?.touched">
-          La date d'observation est requise.
-        </div>
-      </div>
-    </div>
-
-    <!-- SECTEUR / LIEU -->
-    <div class="field-group">
-      <label for="lieu">Secteur / Lieu *</label>
-      <div class="input-container">
-        <input 
-          type="text" 
-          id="lieu" 
-          formControlName="lieu" 
-          placeholder="Ex: Forêt domaniale, Allée des Pins, Fontainebleau">
-      </div>
-      <div class="field-error" *ngIf="pollutionForm.get('lieu')?.invalid && pollutionForm.get('lieu')?.touched">
-        Le lieu est obligatoire.
-      </div>
-    </div>
-
-    <!-- COORDONNÉES GPS (Latitude & Longitude) -->
-    <div class="dual-row">
-      <div class="field-group">
-        <label for="latitude">Latitude (ex: 48.8566) *</label>
+        <label for="titre">Titre de l'anomalie *</label>
         <div class="input-container">
           <input 
             type="text" 
-            id="latitude" 
-            formControlName="latitude" 
-            placeholder="48.8566">
+            id="titre" 
+            formControlName="titre" 
+            placeholder="Ex: Décharge sauvage en bord de route">
         </div>
-        <div class="field-error" *ngIf="pollutionForm.get('latitude')?.invalid && pollutionForm.get('latitude')?.touched">
-          Latitude requise (format décimal, ex: 48.8566).
+        @if (pollutionForm.get('titre')?.invalid && pollutionForm.get('titre')?.touched) {
+          <div class="field-error">
+            @if (pollutionForm.get('titre')?.errors?.['required']) {
+              <span>Le titre est requis.</span>
+            }
+            @if (pollutionForm.get('titre')?.errors?.['minlength']) {
+              <span>Au moins 3 caractères requis.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- TYPE & GRAVITÉ en 2 colonnes -->
+      <div class="dual-row">
+        <div class="field-group">
+          <label for="type">Type de pollution *</label>
+          <div class="input-container">
+            <select id="type" formControlName="type">
+              <option value="" disabled>Sélectionnez un type</option>
+              @for (t of pollutionTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+          @if (pollutionForm.get('type')?.invalid && pollutionForm.get('type')?.touched) {
+            <div class="field-error">
+              Le type de pollution est obligatoire.
+            </div>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="gravite">Niveau de gravité *</label>
+          <div class="input-container">
+            <select id="gravite" formControlName="gravite">
+              @for (g of graviteLevels; track g) {
+                <option [value]="g">{{ g }}</option>
+              }
+            </select>
+          </div>
         </div>
       </div>
 
+      <!-- STATUT & DATE en 2 colonnes -->
+      <div class="dual-row">
+        <div class="field-group">
+          <label for="statut">Statut du traitement *</label>
+          <div class="input-container">
+            <select id="statut" formControlName="statut">
+              @for (s of statusOptions; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="dateObservation">Date d'observation *</label>
+          <div class="input-container">
+            <input 
+              type="date" 
+              id="dateObservation" 
+              formControlName="dateObservation">
+          </div>
+          @if (pollutionForm.get('dateObservation')?.invalid && pollutionForm.get('dateObservation')?.touched) {
+            <div class="field-error">
+              La date d'observation est requise.
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- SECTEUR / LIEU -->
       <div class="field-group">
-        <label for="longitude">Longitude (ex: 2.3522) *</label>
+        <label for="lieu">Secteur / Lieu *</label>
         <div class="input-container">
           <input 
             type="text" 
-            id="longitude" 
-            formControlName="longitude" 
-            placeholder="2.3522">
+            id="lieu" 
+            formControlName="lieu" 
+            placeholder="Ex: Forêt domaniale, Allée des Pins, Fontainebleau">
         </div>
-        <div class="field-error" *ngIf="pollutionForm.get('longitude')?.invalid && pollutionForm.get('longitude')?.touched">
-          Longitude requise (format décimal, ex: 2.3522).
+        @if (pollutionForm.get('lieu')?.invalid && pollutionForm.get('lieu')?.touched) {
+          <div class="field-error">
+            Le lieu est obligatoire.
+          </div>
+        }
+      </div>
+
+      <!-- COORDONNÉES GPS (Latitude & Longitude) -->
+      <div class="dual-row">
+        <div class="field-group">
+          <label for="latitude">Latitude (-90 à 90) *</label>
+          <div class="input-container">
+            <input 
+              type="number" 
+              step="any"
+              id="latitude" 
+              formControlName="latitude" 
+              placeholder="48.8566">
+          </div>
+          @if (pollutionForm.get('latitude')?.invalid && pollutionForm.get('latitude')?.touched) {
+            <div class="field-error">
+              @if (pollutionForm.get('latitude')?.errors?.['required']) {
+                <span>La latitude est requise.</span>
+              }
+              @if (pollutionForm.get('latitude')?.errors?.['min'] || pollutionForm.get('latitude')?.errors?.['max']) {
+                <span>La latitude doit être comprise entre -90 et 90.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="longitude">Longitude (-180 à 180) *</label>
+          <div class="input-container">
+            <input 
+              type="number" 
+              step="any"
+              id="longitude" 
+              formControlName="longitude" 
+              placeholder="2.3522">
+          </div>
+          @if (pollutionForm.get('longitude')?.invalid && pollutionForm.get('longitude')?.touched) {
+            <div class="field-error">
+              @if (pollutionForm.get('longitude')?.errors?.['required']) {
+                <span>La longitude est requise.</span>
+              }
+              @if (pollutionForm.get('longitude')?.errors?.['min'] || pollutionForm.get('longitude')?.errors?.['max']) {
+                <span>La longitude doit être comprise entre -180 et 180.</span>
+              }
+            </div>
+          }
         </div>
       </div>
-    </div>
 
-    <!-- DESCRIPTION -->
-    <div class="field-group">
-      <label for="description">Description détaillée *</label>
-      <div class="input-container">
-        <textarea 
-          id="description" 
-          formControlName="description" 
-          rows="4" 
-          placeholder="Précisez la nature des déchets, l'étendue estimée, les risques immédiats constatés..."></textarea>
-      </div>
-      <div class="field-error" *ngIf="pollutionForm.get('description')?.invalid && pollutionForm.get('description')?.touched">
-        <span *ngIf="pollutionForm.get('description')?.errors?.['required']">La description est requise.</span>
-        <span *ngIf="pollutionForm.get('description')?.errors?.['minlength']">Au moins 10 caractères requis.</span>
-      </div>
-    </div>
-
-    <!-- PHOTO URL & AUTEUR -->
-    <div class="dual-row">
+      <!-- DESCRIPTION -->
       <div class="field-group">
-        <label for="photoUrl">URL de la photo (optionnel)</label>
+        <label for="description">Description détaillée *</label>
         <div class="input-container">
-          <input 
-            type="url" 
-            id="photoUrl" 
-            formControlName="photoUrl" 
-            placeholder="https://images.unsplash.com/...">
+          <textarea 
+            id="description" 
+            formControlName="description" 
+            rows="4" 
+            placeholder="Précisez la nature des déchets, l'étendue estimée, les risques immédiats constatés..."></textarea>
+        </div>
+        @if (pollutionForm.get('description')?.invalid && pollutionForm.get('description')?.touched) {
+          <div class="field-error">
+            @if (pollutionForm.get('description')?.errors?.['required']) {
+              <span>La description est requise.</span>
+            }
+            @if (pollutionForm.get('description')?.errors?.['minlength']) {
+              <span>Au moins 10 caractères requis.</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- PHOTO URL & AUTEUR -->
+      <div class="dual-row">
+        <div class="field-group">
+          <label for="photoUrl">URL de la photo (optionnel)</label>
+          <div class="input-container">
+            <input 
+              type="url" 
+              id="photoUrl" 
+              formControlName="photoUrl" 
+              placeholder="https://images.unsplash.com/...">
+          </div>
+          @if (pollutionForm.get('photoUrl')?.invalid && pollutionForm.get('photoUrl')?.touched) {
+            <div class="field-error">
+              L'adresse de la photo doit être une URL valide (commençant par http:// ou https://).
+            </div>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="auteur">Agent / Auteur du signalement</label>
+          <div class="input-container">
+            <input 
+              type="text" 
+              id="auteur" 
+              formControlName="auteur" 
+              placeholder="Nom de l'agent">
+          </div>
         </div>
       </div>
 
-      <div class="field-group">
-        <label for="auteur">Agent / Auteur du signalement</label>
-        <div class="input-container">
-          <input 
-            type="text" 
-            id="auteur" 
-            formControlName="auteur" 
-            placeholder="Nom de l'agent">
-        </div>
+      <!-- BOUTONS D'ACTION -->
+      <div class="actions-wrapper">
+        <button 
+          type="button" 
+          class="btn-cancel" 
+          (click)="cancel()">
+          Annuler
+        </button>
+
+        <button 
+          type="submit" 
+          class="cyber-button btn-submit" 
+          [disabled]="pollutionForm.invalid || isLoading()">
+          @if (!isLoading()) {
+            <span>{{ isEditMode() ? '💾 Enregistrer les modifications' : '🚀 Enregistrer le signalement' }}</span>
+          } @else {
+            <span class="loading-state">
+              <span class="spinner"></span>
+              Transmission à l'API...
+            </span>
+          }
+        </button>
       </div>
-    </div>
 
-    <!-- BOUTONS D'ACTION -->
-    <div class="actions-wrapper">
-      <button 
-        type="button" 
-        class="btn-cancel" 
-        (click)="cancel()">
-        Annuler
-      </button>
-
-      <button 
-        type="submit" 
-        class="cyber-button btn-submit" 
-        [disabled]="pollutionForm.invalid || isLoading()">
-        <span *ngIf="!isLoading()">
-          {{ isEditMode() ? '💾 Enregistrer les modifications' : '🚀 Enregistrer le signalement' }}
-        </span>
-        <span *ngIf="isLoading()" class="loading-state">
-          <span class="spinner"></span>
-          Transmission à l'API...
-        </span>
-      </button>
-    </div>
-
-  </form>
+    </form>
+  }
 
 </div>

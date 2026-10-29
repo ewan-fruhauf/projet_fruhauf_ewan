@@ -1,5 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PollutionService } from '../services/pollution.service';
@@ -8,13 +7,11 @@ import { Pollution, PollutionType, PollutionGravite, PollutionStatut } from '../
 @Component({
   selector: 'app-pollution-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './pollution-form.component.html',
   styleUrls: ['./pollution-form.component.css']
 })
 export class PollutionFormComponent implements OnInit {
-  @Output() formSubmit = new EventEmitter<any>();
-
   private fb = inject(FormBuilder);
   private pollutionService = inject(PollutionService);
   private route = inject(ActivatedRoute);
@@ -49,9 +46,9 @@ export class PollutionFormComponent implements OnInit {
       description: ['', [Validators.required, Validators.minLength(10)]],
       lieu: ['', Validators.required],
       dateObservation: [new Date().toISOString().split('T')[0], Validators.required],
-      latitude: ['', [Validators.required, Validators.pattern(/^-?([1-8]?[0-9](\.\d+)?|90(\.0+)?)$/)]],
-      longitude: ['', [Validators.required, Validators.pattern(/^-?((1[0-7][0-9]|[1-9]?[0-9])(\.\d+)?|180(\.0+)?)$/)]],
-      photoUrl: [''],
+      latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
+      longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
+      photoUrl: ['', [Validators.pattern(/^https?:\/\/.+/)]],
       auteur: ['']
     });
   }
@@ -145,10 +142,9 @@ export class PollutionFormComponent implements OnInit {
       // --- MODE MODIFICATION (PUT) ---
       const id = this.editId()!;
       this.pollutionService.updatePollution(id, payload).subscribe({
-        next: (updated) => {
+        next: () => {
           this.isLoading.set(false);
           this.successMessage.set(`Signalement #${id} mis à jour avec succès !`);
-          this.formSubmit.emit(updated);
           setTimeout(() => {
             this.router.navigate(['/pollutions', id]);
           }, 1000);
@@ -161,10 +157,9 @@ export class PollutionFormComponent implements OnInit {
     } else {
       // --- MODE CRÉATION (POST) ---
       this.pollutionService.createPollution(payload).subscribe({
-        next: (created) => {
+        next: () => {
           this.isLoading.set(false);
           this.successMessage.set('Signalement enregistré avec succès dans l\'API mockée !');
-          this.formSubmit.emit(created);
           setTimeout(() => {
             this.router.navigate(['/pollutions']);
           }, 1000);
