@@ -1,0 +1,243 @@
+<div class="signup-container">
+  
+  <!-- Info bandeau environnement API -->
+  <div class="api-badge-bar">
+    <span class="pulse-indicator"></span>
+    <span class="api-label">API REST Mockée :</span>
+    <code class="api-url">{{ apiUrl }}/signup</code>
+  </div>
+
+  <!-- VUE 1 : FORMULAIRE D'INSCRIPTION -->
+  @if (!isSubmitted()) {
+    <div class="form-wrapper">
+      
+      <div class="header-intro">
+        <h2 class="form-title">Créer un compte client</h2>
+        <p class="form-subtitle">Enregistrement via service HTTP Angular, injection moderne & API mockée</p>
+      </div>
+
+      <!-- Message d'erreur HTTP si la requête échoue -->
+      @if (errorMessage()) {
+        <div class="alert-box error-alert" role="alert">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-body">
+            <div class="alert-heading">Réponse d'erreur de l'API (HTTP {{ httpStatusCode() }})</div>
+            <p class="alert-text">{{ errorMessage() }}</p>
+            <div class="alert-actions">
+              <button type="button" class="btn-ghost" (click)="onSubmit()">Réessayer la requête</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" novalidate>
+        
+        <!-- Identifiant -->
+        <div class="field-group">
+          <label for="client-login">Identifiant (login)</label>
+          <div class="input-container">
+            <input 
+              type="text" 
+              id="client-login" 
+              formControlName="login" 
+              placeholder="ex: agent_eco" 
+              autocomplete="username">
+          </div>
+          @if (signupForm.get('login')?.invalid && signupForm.get('login')?.touched) {
+            <div class="field-error">
+              @if (signupForm.get('login')?.errors?.['required']) {
+                <span>L'identifiant est obligatoire.</span>
+              }
+              @if (signupForm.get('login')?.errors?.['minlength']) {
+                <span>Minimum 3 caractères requis.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Nom & Prénom en 2 colonnes -->
+        <div class="dual-row">
+          <div class="field-group">
+            <label for="client-nom">Nom</label>
+            <div class="input-container">
+              <input 
+                type="text" 
+                id="client-nom" 
+                formControlName="nom" 
+                placeholder="ex: Dupont" 
+                autocomplete="family-name">
+            </div>
+            @if (signupForm.get('nom')?.invalid && signupForm.get('nom')?.touched) {
+              <div class="field-error">
+                Le nom est obligatoire.
+              </div>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="client-prenom">Prénom</label>
+            <div class="input-container">
+              <input 
+                type="text" 
+                id="client-prenom" 
+                formControlName="prenom" 
+                placeholder="ex: Alex" 
+                autocomplete="given-name">
+            </div>
+            @if (signupForm.get('prenom')?.invalid && signupForm.get('prenom')?.touched) {
+              <div class="field-error">
+                Le prénom est obligatoire.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field-group">
+          <label for="client-email">Adresse email</label>
+          <div class="input-container">
+            <input 
+              type="email" 
+              id="client-email" 
+              formControlName="email" 
+              placeholder="ex: contact@domaine.com" 
+              autocomplete="email">
+          </div>
+          @if (signupForm.get('email')?.invalid && signupForm.get('email')?.touched) {
+            <div class="field-error">
+              @if (signupForm.get('email')?.errors?.['required']) {
+                <span>L'email est obligatoire.</span>
+              }
+              @if (signupForm.get('email')?.errors?.['email']) {
+                <span>Format d'email invalide.</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Mots de passe en 2 colonnes -->
+        <div class="dual-row">
+          <div class="field-group">
+            <label for="client-password">Mot de passe</label>
+            <div class="input-container">
+              <input 
+                type="password" 
+                id="client-password" 
+                formControlName="password" 
+                placeholder="••••••••" 
+                autocomplete="new-password">
+            </div>
+            @if (signupForm.get('password')?.invalid && signupForm.get('password')?.touched) {
+              <div class="field-error">
+                @if (signupForm.get('password')?.errors?.['required']) {
+                  <span>Mot de passe requis.</span>
+                }
+                @if (signupForm.get('password')?.errors?.['minlength']) {
+                  <span>Au moins 6 caractères requis.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="client-confirm-password">Confirmation</label>
+            <div class="input-container">
+              <input 
+                type="password" 
+                id="client-confirm-password" 
+                formControlName="confirmPassword" 
+                placeholder="••••••••" 
+                autocomplete="new-password">
+            </div>
+            @if (signupForm.get('confirmPassword')?.touched && signupForm.errors?.['passwordMismatch']) {
+              <div class="field-error">
+                Les mots de passe ne correspondent pas.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Bouton d'action avec gestion du chargement -->
+        <div class="submit-wrapper">
+          <button 
+            type="submit" 
+            class="cyber-button submit-btn" 
+            [disabled]="isLoading() || signupForm.invalid">
+            @if (!isLoading()) {
+              <span>Créer mon compte</span>
+            } @else {
+              <span class="loading-state">
+                <span class="spinner"></span>
+                Communication avec l'API...
+              </span>
+            }
+          </button>
+
+          <p class="mock-hint">
+            💡 <em>Note pour l'évaluation : L'intercepteur HTTP simule l'API REST. Saisissez l'identifiant <code>error</code> pour tester la gestion des erreurs HTTP (409 Conflict).</em>
+          </p>
+        </div>
+
+      </form>
+    </div>
+  }
+
+  <!-- VUE 2 : RÉSULTATS RETOURNÉS PAR L'API -->
+  @if (isSubmitted()) {
+    <div class="results-wrapper">
+      <div class="success-banner">
+        <div class="success-icon">✓</div>
+        <h3 class="success-title">Inscription confirmée par le service !</h3>
+        <p class="success-subtitle">Le service client a complété l'appel HTTP avec succès.</p>
+      </div>
+
+      <div class="result-card">
+        <div class="card-header">
+          <span class="badge-status">Statut HTTP: {{ httpStatusCode() || 201 }} Created</span>
+          <span class="timestamp">{{ apiResponse()?.user?.createdAt || 'À l\'instant' }}</span>
+        </div>
+
+        <div class="result-details">
+          @if (apiResponse()?.user?.id) {
+            <div class="detail-item">
+              <span class="detail-label">Identifiant système (ID):</span>
+              <span class="detail-value highlight">#{{ apiResponse()?.user?.id }}</span>
+            </div>
+          }
+          <div class="detail-item">
+            <span class="detail-label">Login:</span>
+            <span class="detail-value">&#64;{{ apiResponse()?.user?.login || signupForm.value.login }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Nom complet:</span>
+            <span class="detail-value">{{ apiResponse()?.user?.prenom || signupForm.value.prenom }} {{ apiResponse()?.user?.nom || signupForm.value.nom }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Email:</span>
+            <span class="detail-value">{{ apiResponse()?.user?.email || signupForm.value.email }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Message API:</span>
+            <span class="detail-value message">{{ apiResponse()?.message || 'Utilisateur enregistré avec succès.' }}</span>
+          </div>
+        </div>
+
+        <!-- JSON brut retourné -->
+        <div class="raw-response">
+          <span class="raw-label">Réponse brute reçue de l'API :</span>
+          <pre class="json-dump">{{ apiResponse() | json }}</pre>
+        </div>
+      </div>
+
+      <div class="actions-wrapper">
+        <button type="button" class="btn-ghost" (click)="onReset()">
+          ← Inscrire un autre utilisateur
+        </button>
+        <a routerLink="/pollutions" class="cyber-button btn-goto">
+          → Accéder à l'observatoire des pollutions
+        </a>
+      </div>
+    </div>
+  }
+
+</div>
