@@ -1,7 +1,7 @@
 databases:
   - name: tp04-db-fruhauf-ewan
     databaseName: pollutions_db
-    user: postgres
+    user: fruhauf_user
     plan: free
 
 services:
