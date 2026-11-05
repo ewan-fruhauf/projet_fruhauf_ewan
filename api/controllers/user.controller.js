@@ -187,3 +187,4 @@ exports.seedUsersIfEmpty = async () => {
     console.error('Avertissement seed users:', error.message);
   }
 };
+
