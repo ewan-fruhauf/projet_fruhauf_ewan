@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { environment } from '../environments/environment';
+import { UserService } from './services/user.service';
+import { User } from './models/user.model';
 
 @Component({
   selector: 'app-root',
@@ -11,41 +13,36 @@ import { environment } from '../environments/environment';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'Suivi de Pollution';
+  title = 'Suivi de Pollution & Gestion Utilisateurs';
   readonly apiUrl = environment.apiUrl;
   readonly isMocked = (environment as any).mockApi !== false;
 
-  currentUser: any = null;
+  private userService = inject(UserService);
+  private router = inject(Router);
 
-  constructor(private router: Router) {}
+  currentUser: User | null = null;
 
   ngOnInit(): void {
-    this.refreshUser();
-  }
+    // Écoute réactive de l'utilisateur connecté via UserService
+    this.userService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
 
-  refreshUser(): void {
-    const saved = sessionStorage.getItem('currentUser');
-    if (saved) {
-      try {
-        this.currentUser = JSON.parse(saved);
-      } catch {
-        sessionStorage.removeItem('currentUser');
-        this.currentUser = null;
-      }
-    } else {
-      // Utilisateur agent par défaut pour simplifier les tests et l'évaluation immédiate
-      this.currentUser = {
+    // Initialisation d'un profil par défaut si aucun n'est actif
+    if (!this.currentUser) {
+      this.userService.setCurrentUser({
+        id: 1,
         login: 'agent_eco',
         nom: 'Martin',
-        prenom: 'Alex'
-      };
-      sessionStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        prenom: 'Alex',
+        role: 'Agent de terrain',
+        email: 'alex.martin@terrashield.org'
+      });
     }
   }
 
   logout(): void {
-    sessionStorage.removeItem('currentUser');
-    this.currentUser = null;
+    this.userService.logout();
     this.router.navigate(['/signup']);
   }
 }

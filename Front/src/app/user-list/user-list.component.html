@@ -1,0 +1,197 @@
+<div class="users-container">
+
+  <!-- Entête avec métriques et actions -->
+  <header class="users-header">
+    <div class="header-left">
+      <div class="badge-role">
+        <span class="pulse-icon">👥</span>
+        <span>GESTION DES UTILISATEURS & AGENTS</span>
+      </div>
+      <h1 class="page-title">Annuaire & Rôles des Utilisateurs</h1>
+      <p class="page-subtitle">
+        Gestion centralisée des comptes via l'API REST Node.js & Sequelize (<code>{{ apiUrl }}/users</code>)
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn-refresh" (click)="loadUsers()" [disabled]="isLoading()" title="Actualiser la liste">
+        <span class="btn-icon" [class.spinning]="isLoading()">🔄</span>
+        <span>Actualiser</span>
+      </button>
+
+      <button type="button" class="btn-primary" (click)="toggleAddForm()">
+        <span class="btn-icon">{{ showAddForm() ? '✕' : '＋' }}</span>
+        <span>{{ showAddForm() ? 'Fermer' : 'Nouvel Utilisateur' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Messages d'alerte -->
+  @if (successMessage()) {
+    <div class="alert-banner alert-success">
+      <span class="alert-icon">✅</span>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert-banner alert-error">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Formulaire d'ajout rapide (pliable) -->
+  @if (showAddForm()) {
+    <section class="add-user-panel glass-card">
+      <h3 class="panel-title">
+        <span>👤</span> Ajouter un nouvel agent / utilisateur
+      </h3>
+
+      <form [formGroup]="userForm" (ngSubmit)="onSubmitNewUser()" class="user-form" novalidate>
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label for="u-login">Identifiant (login) *</label>
+            <input id="u-login" type="text" formControlName="login" placeholder="ex: jdupont">
+            @if (userForm.get('login')?.invalid && userForm.get('login')?.touched) {
+              <small class="error-text">Identifiant obligatoire (min. 3 car.).</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="u-email">Adresse Email *</label>
+            <input id="u-email" type="email" formControlName="email" placeholder="ex: j.dupont@terrashield.org">
+            @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+              <small class="error-text">Email valide obligatoire.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="u-prenom">Prénom *</label>
+            <input id="u-prenom" type="text" formControlName="prenom" placeholder="ex: Jean">
+            @if (userForm.get('prenom')?.invalid && userForm.get('prenom')?.touched) {
+              <small class="error-text">Le prénom est requis.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="u-nom">Nom *</label>
+            <input id="u-nom" type="text" formControlName="nom" placeholder="ex: Dupont">
+            @if (userForm.get('nom')?.invalid && userForm.get('nom')?.touched) {
+              <small class="error-text">Le nom est requis.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="u-role">Rôle / Statut *</label>
+            <select id="u-role" formControlName="role">
+              <option value="Agent de terrain">Agent de terrain</option>
+              <option value="Administrateur">Administrateur</option>
+              <option value="Enquêteur Environnement">Enquêteur Environnement</option>
+              <option value="Superviseur">Superviseur</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="u-password">Mot de passe *</label>
+            <input id="u-password" type="password" formControlName="password" placeholder="Mot de passe">
+            @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+              <small class="error-text">Min. 6 caractères requis.</small>
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="toggleAddForm()">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="userForm.invalid || isLoading()">
+            <span>Enregistrer dans la base</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- État de chargement -->
+  @if (isLoading() && users().length === 0) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des utilisateurs en cours...</p>
+    </div>
+  }
+
+  <!-- Liste des utilisateurs -->
+  @if (!isLoading() || users().length > 0) {
+    <div class="users-meta">
+      <span class="count-badge">{{ users().length }} utilisateur(s) enregistré(s)</span>
+      <span class="api-info">Méthode REST : <code>GET /api/users</code></span>
+    </div>
+
+    @if (users().length === 0) {
+      <div class="empty-state glass-card">
+        <span class="empty-icon">📭</span>
+        <h3>Aucun utilisateur enregistré pour le moment</h3>
+        <p>Utilisez le bouton ci-dessus pour ajouter le premier compte agent.</p>
+      </div>
+    } @else {
+      <div class="users-grid">
+        @for (user of users(); track user.id) {
+          <div class="user-card glass-card" [class.is-current]="currentUser()?.id === user.id">
+            
+            <div class="user-card-header">
+              <div class="user-avatar">
+                {{ getInitials(user) }}
+              </div>
+              <div class="user-header-text">
+                <h3 class="user-fullname">{{ user.prenom }} {{ user.nom }}</h3>
+                <span class="user-login">&#64;{{ user.login }}</span>
+              </div>
+              @if (currentUser()?.id === user.id) {
+                <span class="current-badge" title="Session active sur ce compte">Connecté</span>
+              }
+            </div>
+
+            <div class="user-card-body">
+              <div class="user-info-row">
+                <span class="info-label">Rôle :</span>
+                <span class="role-pill">{{ user.role || 'Agent' }}</span>
+              </div>
+
+              <div class="user-info-row">
+                <span class="info-label">Email :</span>
+                <a [href]="'mailto:' + user.email" class="email-link">{{ user.email }}</a>
+              </div>
+
+              @if (user.createdAt) {
+                <div class="user-info-row">
+                  <span class="info-label">Inscrit le :</span>
+                  <span class="info-value">{{ user.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="user-card-footer">
+              <button 
+                type="button" 
+                class="btn-select" 
+                [disabled]="currentUser()?.id === user.id"
+                (click)="onSelectUser(user)">
+                {{ currentUser()?.id === user.id ? '✓ Compte actif' : 'Basculer session' }}
+              </button>
+
+              <button 
+                type="button" 
+                class="btn-delete" 
+                (click)="onDeleteUser(user)"
+                title="Supprimer cet utilisateur (DELETE /api/users/:id)">
+                🗑️
+              </button>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

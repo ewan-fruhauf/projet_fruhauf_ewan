@@ -7,7 +7,7 @@
         <span class="brand-logo">🛡️</span>
         <div class="brand-text">
           <span class="brand-title">TERRA SHIELD</span>
-          <span class="brand-sub">SURVEILLANCE & POLLUTION</span>
+          <span class="brand-sub">SURVEILLANCE & GESTION REST</span>
         </div>
       </a>
     </div>
@@ -20,7 +20,7 @@
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav-item">
         <span class="nav-icon">📋</span>
-        <span>Signalements</span>
+        <span>Pollutions</span>
       </a>
 
       <a 
@@ -32,11 +32,19 @@
       </a>
 
       <a 
+        routerLink="/users" 
+        routerLinkActive="active-link" 
+        class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span>Utilisateurs</span>
+      </a>
+
+      <a 
         routerLink="/signup" 
         routerLinkActive="active-link" 
         class="nav-item">
         <span class="nav-icon">👤</span>
-        <span>Service Client</span>
+        <span>Inscription</span>
       </a>
     </nav>
 
@@ -44,14 +52,14 @@
     <div class="nav-user-section">
       <div class="api-status-badge" [title]="'API configurée : ' + apiUrl">
         <span class="pulse-dot"></span>
-        <span class="api-env-label">API Mockée (HTTP)</span>
+        <span class="api-env-label">API REST Node.js</span>
       </div>
 
       @if (currentUser) {
-        <div class="user-pill">
+        <div class="user-pill" [title]="'Connecté en tant que ' + currentUser.role">
           <span class="user-avatar">🟢</span>
           <span class="user-text">
-            {{ currentUser.prenom }} {{ currentUser.nom }}
+            {{ currentUser.prenom }} {{ currentUser.nom }} ({{ currentUser.role || 'Agent' }})
           </span>
           <button type="button" class="btn-logout-mini" (click)="logout()" title="Déconnexion">
             ✕
@@ -73,9 +81,9 @@
   <!-- PIED DE PAGE -->
   <footer class="app-footer">
     <div class="footer-content">
-      <span>TP 03 — Service de Gestion des Pollutions & Architecture Angular</span>
+      <span>TP 04 — Développement d’une API REST Node.js pour la gestion des pollutions et des utilisateurs</span>
       <span class="footer-sep">•</span>
-      <span>API Endpoint : <code>{{ apiUrl }}/pollutions</code></span>
+      <span>API Endpoints : <code>{{ apiUrl }}/pollutions</code> & <code>{{ apiUrl }}/users</code></span>
     </div>
   </footer>
 

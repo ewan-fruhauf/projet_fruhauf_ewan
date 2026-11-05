@@ -3,6 +3,7 @@ import { PollutionListComponent } from './pollution-list/pollution-list.componen
 import { PollutionDetailComponent } from './pollution-detail/pollution-detail.component';
 import { PollutionFormComponent } from './pollution-form/pollution-form.component';
 import { ClientSignupComponent } from './client-signup/client-signup.component';
+import { UserListComponent } from './user-list/user-list.component';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,11 @@ export const routes: Routes = [
     path: 'pollutions/:id/edit',
     component: PollutionFormComponent,
     title: 'Modifier un signalement de pollution'
+  },
+  {
+    path: 'users',
+    component: UserListComponent,
+    title: 'Gestion des Utilisateurs & Agents (TP 04)'
   },
   {
     path: 'signup',

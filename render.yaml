@@ -1,5 +1,5 @@
 databases:
-  - name: tp03-db-fruhauf-ewan
+  - name: tp04-db-fruhauf-ewan
     databaseName: pollutions_db
     user: postgres
     plan: free
@@ -35,17 +35,29 @@ services:
         destination: /index.html
 
   - type: web
-    name: tp03-api-fruhauf-ewan
+    name: tp04-fruhauf-ewan
+    runtime: static
+    branch: tp04
+    rootDir: Front
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/front/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: web
+    name: tp04-api-fruhauf-ewan
     runtime: node
     plan: free
-    branch: tp03
+    branch: tp04
     rootDir: api
     buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: tp03-db-fruhauf-ewan
+          name: tp04-db-fruhauf-ewan
           property: connectionString
       - key: NODE_ENV
         value: production

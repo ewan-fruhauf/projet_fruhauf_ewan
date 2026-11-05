@@ -1,7 +1,40 @@
 import { Pollution } from '../models/pollution.model';
+import { User } from '../models/user.model';
 
 // Clé de stockage pour la persistance locale du mock
 export const STORAGE_KEY = 'mock_pollutions_database';
+export const USERS_STORAGE_KEY = 'mock_users_database';
+
+// Données utilisateurs initiales
+export const INITIAL_USERS: User[] = [
+  {
+    id: 1,
+    login: 'agent_eco',
+    email: 'alex.martin@terrashield.org',
+    nom: 'Martin',
+    prenom: 'Alex',
+    role: 'Agent de terrain',
+    createdAt: '2026-10-15T08:00:00.000Z'
+  },
+  {
+    id: 2,
+    login: 'admin',
+    email: 'admin@terrashield.org',
+    nom: 'Dupont',
+    prenom: 'Alice',
+    role: 'Administrateur',
+    createdAt: '2026-10-10T10:30:00.000Z'
+  },
+  {
+    id: 3,
+    login: 'jdupont',
+    email: 'jean.dupont@terrashield.org',
+    nom: 'Dupont',
+    prenom: 'Jean',
+    role: 'Enquêteur Environnement',
+    createdAt: '2026-10-22T14:20:00.000Z'
+  }
+];
 
 // Données initiales par défaut au démarrage
 export const INITIAL_POLLUTIONS: Pollution[] = [

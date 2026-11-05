@@ -1,6 +1,8 @@
--- Script d'initialisation de la table 'pollution' dans PostgreSQL via pgAdmin
--- (Ce script est facultatif car Sequelize synchronise et crée automatiquement la table au démarrage de l'API)
+-- ======================================================================
+-- TP 04 : Script d'initialisation PostgreSQL (utilisable dans pgAdmin)
+-- ======================================================================
 
+-- 1. Table des Pollutions
 CREATE TABLE IF NOT EXISTS pollution (
     id SERIAL PRIMARY KEY,
     titre VARCHAR(255) NOT NULL,
@@ -17,7 +19,20 @@ CREATE TABLE IF NOT EXISTS pollution (
     "dateCreation" VARCHAR(100)
 );
 
--- Insertion de données de test initiales
+-- 2. Table des Utilisateurs (TP 04)
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    login VARCHAR(150) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    nom VARCHAR(150) NOT NULL,
+    prenom VARCHAR(150) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(100) NOT NULL DEFAULT 'Agent de terrain',
+    "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Données de test initiales pour les pollutions
 INSERT INTO pollution (titre, type, description, lieu, "dateObservation", latitude, longitude, "photoUrl", auteur, gravite, statut, "dateCreation")
 VALUES 
 (
@@ -47,22 +62,17 @@ VALUES
   'Critique',
   'En cours',
   '2026-10-19T09:15:00.000Z'
-),
-(
-  'Amas de microplastiques et emballages sur plage',
-  'Plastique',
-  'Grande quantité de bouteilles, filets de pêche et microparticules plastiques échoués après la dernière marée haute.',
-  'Plage de la Côte des Basques, Biarritz',
-  '2026-10-20',
-  43.4795,
-  -1.5647,
-  'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
-  'Alexandre Dumas',
-  'Moyenne',
-  'En attente',
-  '2026-10-20T16:45:00.000Z'
-);
+)
+ON CONFLICT DO NOTHING;
 
--- Vérification des enregistrements
+-- Données de test initiales pour les utilisateurs (TP 04)
+INSERT INTO users (login, email, nom, prenom, password, role)
+VALUES
+('agent_eco', 'alex.martin@terrashield.org', 'Martin', 'Alex', 'Password123!', 'Agent de terrain'),
+('admin', 'admin@terrashield.org', 'Dupont', 'Alice', 'AdminPassword123!', 'Administrateur'),
+('jdupont', 'jean.dupont@terrashield.org', 'Dupont', 'Jean', 'UserPassword123!', 'Enquêteur Environnement')
+ON CONFLICT (login) DO NOTHING;
+
+-- Vérification
 SELECT * FROM pollution;
-
+SELECT id, login, email, nom, prenom, role, "createdAt" FROM users;

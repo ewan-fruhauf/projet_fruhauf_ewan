@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ClientService } from '../services/client.service';
+import { UserService } from '../services/user.service';
 import { ClientSignUp, ClientResponse } from '../models/client.model';
 import { environment } from '../../environments/environment';
 
@@ -32,6 +33,7 @@ export class ClientSignupComponent {
 
   // 1. Injection de dépendances moderne via inject() (recommandation Séance 3)
   private clientService = inject(ClientService);
+  private userService = inject(UserService);
   private fb = inject(FormBuilder);
 
   // Exposition de la configuration d'environnement pour affichage informatif
@@ -85,7 +87,7 @@ export class ClientSignupComponent {
         this.isSubmitted.set(true);
         this.apiResponse.set(response);
         if (response.user) {
-          sessionStorage.setItem('currentUser', JSON.stringify(response.user));
+          this.userService.setCurrentUser(response.user);
         }
         // Émission pour redirection automatique vers la plateforme
         this.signupSuccess.emit(response);

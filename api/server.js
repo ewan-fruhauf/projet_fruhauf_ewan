@@ -2,8 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+
+// Import des routes
 const pollutionRoutes = require('./routes/pollution.routes');
+const userRoutes = require('./routes/user.routes');
+
+// Import des graines de données (seeds)
 const { seedIfEmpty } = require('./controllers/pollution.controller');
+const { seedUsersIfEmpty, createUser, login } = require('./controllers/user.controller');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,63 +18,64 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Routes de l'API (supporte /api/pollution et /api/pollutions)
+// Routes pour la gestion des pollutions (TP 03 & TP 04)
 app.use('/api/pollutions', pollutionRoutes);
 app.use('/api/pollution', pollutionRoutes);
 
-// Route d'inscription auth (présente dans le TP précédent)
-app.post('/api/signup', (req, res) => {
-  const { login, email, nom, prenom } = req.body;
+// Routes pour la gestion des utilisateurs (TP 04)
+app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 
-  if (login === 'error' || email === 'error@test.com') {
-    return res.status(409).json({ message: "Cet identifiant est déjà utilisé (Code 409 Conflict)" });
-  }
+// Routes de compatibilité directe
+app.post('/api/signup', createUser);
+app.post('/api/login', login);
 
-  return res.status(201).json({
-    success: true,
-    message: 'Inscription enregistrée avec succès',
-    user: {
-      id: Math.floor(Math.random() * 9000) + 1000,
-      login,
-      email,
-      nom,
-      prenom,
-      createdAt: new Date().toISOString()
-    }
-  });
-});
-
-// Route racine d'accueil et statut
+// Route racine d'accueil et documentation des endpoints REST
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
-    message: 'API REST Pollution active avec PostgreSQL et Sequelize',
+    project: 'TP 04 — API REST Node.js pour la gestion des pollutions et des utilisateurs',
+    orm: 'Sequelize',
+    database: 'PostgreSQL',
     endpoints: {
-      pollutions: '/api/pollutions (ou /api/pollution)',
-      signup: '/api/signup'
+      users: {
+        list: 'GET /api/users',
+        details: 'GET /api/users/:id',
+        create: 'POST /api/users',
+        delete: 'DELETE /api/users/:id',
+        login: 'POST /api/users/login (ou /api/login)'
+      },
+      pollutions: {
+        list: 'GET /api/pollutions (ou /api/pollution)',
+        details: 'GET /api/pollutions/:id',
+        create: 'POST /api/pollutions',
+        update: 'PUT /api/pollutions/:id',
+        delete: 'DELETE /api/pollutions/:id'
+      }
     }
   });
 });
 
-// Synchronisation avec la base de données et démarrage du serveur
+// Démarrage du serveur et synchronisation avec la base PostgreSQL
 async function startServer() {
   try {
     // Authentification auprès de PostgreSQL
     await sequelize.authenticate();
     console.log('✅ Connexion à PostgreSQL établie avec succès.');
 
-    // Synchronisation des modèles (crée la table 'pollution' si elle n'existe pas)
+    // Synchronisation automatique des modèles (tables 'pollution' et 'users')
     await sequelize.sync({ alter: true });
-    console.log('✅ Table "pollution" synchronisée avec la base de données.');
+    console.log('✅ Tables "pollution" et "users" synchronisées avec la base de données.');
 
-    // Peuplement initial des données si la table est vide
+    // Remplissage des données initiales si les tables sont vides
     await seedIfEmpty();
+    await seedUsersIfEmpty();
 
     app.listen(PORT, () => {
-      console.log(`🚀 Serveur en écoute sur le port ${PORT}`);
+      console.log(`🚀 Serveur TP 04 en écoute sur le port ${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Impossible de se connecter à la base de données PostgreSQL :', error.message);
+    console.error('❌ Erreur de connexion PostgreSQL :', error.message);
     app.listen(PORT, () => {
       console.log(`⚠️ Serveur démarré sur le port ${PORT} sans connexion PostgreSQL active.`);
     });

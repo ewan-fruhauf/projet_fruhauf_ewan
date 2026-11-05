@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://tp03-api-fruhauf-ewan.onrender.com/api',
+  apiUrl: 'https://tp04-api-fruhauf-ewan.onrender.com/api',
   mockApi: false
 };
