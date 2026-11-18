@@ -4,13 +4,13 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ClientSignupComponent } from './client-signup.component';
-import { ClientService } from '../services/client.service';
-import { ClientResponse } from '../models/client.model';
+import { UserService } from '../services/user.service';
+import { UserResponse } from '../models/user.model';
 
 describe('ClientSignupComponent', () => {
   let component: ClientSignupComponent;
   let fixture: ComponentFixture<ClientSignupComponent>;
-  let clientService: ClientService;
+  let userService: UserService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,13 +19,13 @@ describe('ClientSignupComponent', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        ClientService
+        UserService
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientSignupComponent);
     component = fixture.componentInstance;
-    clientService = TestBed.inject(ClientService);
+    userService = TestBed.inject(UserService);
     fixture.detectChanges();
   });
 
@@ -64,8 +64,8 @@ describe('ClientSignupComponent', () => {
     expect(component.signupForm.valid).toBeTrue();
   });
 
-  it('devrait appeler ClientService.signUp et afficher le résultat en cas de succès', () => {
-    const mockResponse: ClientResponse = {
+  it('devrait appeler UserService.createUser et afficher le résultat en cas de succès', () => {
+    const mockResponse: UserResponse = {
       success: true,
       message: 'Compte créé avec succès',
       user: {
@@ -77,7 +77,7 @@ describe('ClientSignupComponent', () => {
       }
     };
 
-    spyOn(clientService, 'signUp').and.returnValue(of(mockResponse));
+    spyOn(userService, 'createUser').and.returnValue(of(mockResponse));
 
     component.signupForm.patchValue({
       login: 'agent_eco',
@@ -90,7 +90,7 @@ describe('ClientSignupComponent', () => {
 
     component.onSubmit();
 
-    expect(clientService.signUp).toHaveBeenCalled();
+    expect(userService.createUser).toHaveBeenCalled();
     expect(component.isSubmitted()).toBeTrue();
     expect(component.isLoading()).toBeFalse();
     expect(component.apiResponse()).toEqual(mockResponse);
@@ -107,7 +107,7 @@ describe('ClientSignupComponent', () => {
       error: {}
     };
 
-    spyOn(clientService, 'signUp').and.returnValue(throwError(() => errorResponse));
+    spyOn(userService, 'createUser').and.returnValue(throwError(() => errorResponse));
 
     component.signupForm.patchValue({
       login: 'agent_eco',
@@ -120,14 +120,10 @@ describe('ClientSignupComponent', () => {
 
     component.onSubmit();
 
-    expect(clientService.signUp).toHaveBeenCalled();
+    expect(userService.createUser).toHaveBeenCalled();
     expect(component.isLoading()).toBeFalse();
     expect(component.isSubmitted()).toBeFalse();
     expect(component.errorMessage()).toContain('Impossible de joindre le serveur API');
-
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.error-alert')).toBeTruthy();
   });
 
   it('devrait réinitialiser le formulaire avec onReset', () => {

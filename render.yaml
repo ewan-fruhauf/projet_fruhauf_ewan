@@ -50,7 +50,7 @@ services:
     name: tp04-api-fruhauf-ewan
     runtime: node
     plan: free
-    branch: tp04
+    branch: tp05
     rootDir: api
     buildCommand: npm install
     startCommand: node server.js
@@ -61,3 +61,15 @@ services:
           property: connectionString
       - key: NODE_ENV
         value: production
+
+  - type: web
+    name: tp05-fruhauf-ewan
+    runtime: static
+    branch: tp05
+    rootDir: Front
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/front/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

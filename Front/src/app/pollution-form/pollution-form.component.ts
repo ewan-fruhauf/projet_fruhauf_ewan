@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PollutionService } from '../services/pollution.service';
+import { UserService } from '../services/user.service';
 import { Pollution, PollutionType, PollutionGravite, PollutionStatut } from '../models/pollution.model';
 
 @Component({
@@ -9,15 +10,16 @@ import { Pollution, PollutionType, PollutionGravite, PollutionStatut } from '../
   standalone: true,
   imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './pollution-form.component.html',
-  styleUrls: ['./pollution-form.component.css']
+  styleUrls: ['./pollution-form.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PollutionFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private pollutionService = inject(PollutionService);
+  private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  pollutionForm: FormGroup;
   isEditMode = signal<boolean>(false);
   editId = signal<number | string | null>(null);
   isLoading = signal<boolean>(false);
@@ -37,38 +39,29 @@ export class PollutionFormComponent implements OnInit {
   readonly graviteLevels: PollutionGravite[] = ['Faible', 'Moyenne', 'Critique'];
   readonly statusOptions: PollutionStatut[] = ['En attente', 'En cours', 'Traité'];
 
-  constructor() {
-    this.pollutionForm = this.fb.group({
-      titre: ['', [Validators.required, Validators.minLength(3)]],
-      type: ['', Validators.required],
-      gravite: ['Moyenne', Validators.required],
-      statut: ['En attente', Validators.required],
-      description: ['', [Validators.required, Validators.minLength(10)]],
-      lieu: ['', Validators.required],
-      dateObservation: [new Date().toISOString().split('T')[0], Validators.required],
-      latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-      longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
-      photoUrl: ['', [Validators.pattern(/^https?:\/\/.+/)]],
-      auteur: ['']
-    });
-  }
+  pollutionForm: FormGroup = this.fb.group({
+    titre: ['', [Validators.required, Validators.minLength(3)]],
+    type: ['', Validators.required],
+    gravite: ['Moyenne', Validators.required],
+    statut: ['En attente', Validators.required],
+    description: ['', [Validators.required, Validators.minLength(10)]],
+    lieu: ['', Validators.required],
+    dateObservation: [new Date().toISOString().split('T')[0], Validators.required],
+    latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
+    longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
+    photoUrl: ['', [Validators.pattern(/^https?:\/\/.+/)]],
+    auteur: ['']
+  });
 
   ngOnInit(): void {
-    // Vérifie si un utilisateur est stocké en session pour pré-remplir l'auteur
-    const savedUser = sessionStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        const u = JSON.parse(savedUser);
-        const name = `${u.prenom || ''} ${u.nom || ''}`.trim() || u.login;
-        if (name) {
-          this.pollutionForm.patchValue({ auteur: name });
-        }
-      } catch {
-        // Ignorer si non présent
-      }
+    // Pré-remplit le nom de l'auteur avec l'utilisateur connecté via UserService
+    const user = this.userService.currentUser();
+    if (user) {
+      const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || user.login;
+      this.pollutionForm.patchValue({ auteur: fullName });
     }
 
-    // Détection du mode Édition via le paramètre d'URL :id
+    // Vérifie si l'URL contient un ID : si oui, on passe en mode modification
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditMode.set(true);
@@ -77,9 +70,6 @@ export class PollutionFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Charge les données existantes pour pré-remplir le formulaire en mode édition
-   */
   loadExistingData(id: string | number): void {
     this.isFetchingInitial.set(true);
     this.errorMessage.set(null);
@@ -103,16 +93,11 @@ export class PollutionFormComponent implements OnInit {
       },
       error: (err) => {
         this.isFetchingInitial.set(false);
-        this.errorMessage.set(
-          err?.error?.message || `Impossible de charger les données du signalement #${id}.`
-        );
+        this.errorMessage.set(err?.error?.message || `Impossible de charger le signalement #${id}.`);
       }
     });
   }
 
-  /**
-   * Soumission du formulaire (Création ou Mise à jour)
-   */
   onSubmit(): void {
     if (this.pollutionForm.invalid) {
       this.pollutionForm.markAllAsTouched();
@@ -139,15 +124,12 @@ export class PollutionFormComponent implements OnInit {
     };
 
     if (this.isEditMode()) {
-      // --- MODE MODIFICATION (PUT) ---
       const id = this.editId()!;
       this.pollutionService.updatePollution(id, payload).subscribe({
         next: () => {
           this.isLoading.set(false);
           this.successMessage.set(`Signalement #${id} mis à jour avec succès !`);
-          setTimeout(() => {
-            this.router.navigate(['/pollutions', id]);
-          }, 1000);
+          setTimeout(() => this.router.navigate(['/pollutions', id]), 900);
         },
         error: (err) => {
           this.isLoading.set(false);
@@ -155,14 +137,11 @@ export class PollutionFormComponent implements OnInit {
         }
       });
     } else {
-      // --- MODE CRÉATION (POST) ---
       this.pollutionService.createPollution(payload).subscribe({
         next: () => {
           this.isLoading.set(false);
-          this.successMessage.set('Signalement enregistré avec succès dans l\'API mockée !');
-          setTimeout(() => {
-            this.router.navigate(['/pollutions']);
-          }, 1000);
+          this.successMessage.set('Signalement enregistré avec succès !');
+          setTimeout(() => this.router.navigate(['/pollutions']), 900);
         },
         error: (err) => {
           this.isLoading.set(false);

@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
-import { PollutionListComponent } from './pollution-list/pollution-list.component';
-import { PollutionDetailComponent } from './pollution-detail/pollution-detail.component';
-import { PollutionFormComponent } from './pollution-form/pollution-form.component';
-import { ClientSignupComponent } from './client-signup/client-signup.component';
-import { UserListComponent } from './user-list/user-list.component';
+import { authGuard } from './guards/auth.guard';
 
+/**
+ * Configuration des routes avec Lazy Loading (loadComponent) et protection par Guard (TP 05)
+ */
 export const routes: Routes = [
   {
     path: '',
@@ -13,33 +12,42 @@ export const routes: Routes = [
   },
   {
     path: 'pollutions',
-    component: PollutionListComponent,
+    loadComponent: () =>
+      import('./pollution-list/pollution-list.component').then(m => m.PollutionListComponent),
     title: 'Observatoire des Pollutions — Liste'
   },
   {
     path: 'pollutions/new',
-    component: PollutionFormComponent,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pollution-form/pollution-form.component').then(m => m.PollutionFormComponent),
     title: 'Déclarer un signalement de pollution'
   },
   {
     path: 'pollutions/:id',
-    component: PollutionDetailComponent,
+    loadComponent: () =>
+      import('./pollution-detail/pollution-detail.component').then(m => m.PollutionDetailComponent),
     title: 'Détail de la pollution'
   },
   {
     path: 'pollutions/:id/edit',
-    component: PollutionFormComponent,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pollution-form/pollution-form.component').then(m => m.PollutionFormComponent),
     title: 'Modifier un signalement de pollution'
   },
   {
     path: 'users',
-    component: UserListComponent,
-    title: 'Gestion des Utilisateurs & Agents (TP 04)'
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./user-list/user-list.component').then(m => m.UserListComponent),
+    title: 'Gestion des Utilisateurs & Agents'
   },
   {
     path: 'signup',
-    component: ClientSignupComponent,
-    title: 'Inscription Agent Client'
+    loadComponent: () =>
+      import('./client-signup/client-signup.component').then(m => m.ClientSignupComponent),
+    title: 'Connexion & Inscription Agent'
   },
   {
     path: '**',

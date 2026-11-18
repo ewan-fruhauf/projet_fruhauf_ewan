@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,7 +11,8 @@ import { environment } from '../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.css']
+  styleUrls: ['./user-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListComponent implements OnInit {
   private userService = inject(UserService);
@@ -19,15 +20,15 @@ export class UserListComponent implements OnInit {
 
   readonly apiUrl = environment.apiUrl;
 
-  // Signaux d'état
+  // Lecture directe du signal de l'utilisateur connecté depuis UserService
+  readonly currentUser = this.userService.currentUser;
+
   users = signal<User[]>([]);
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
-  currentUser = signal<User | null>(null);
-
-  // Formulaire d'ajout rapide
   showAddForm = signal<boolean>(false);
+
   userForm: FormGroup = this.fb.group({
     login: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
@@ -38,11 +39,6 @@ export class UserListComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Écoute de l'utilisateur courant
-    this.userService.currentUser$.subscribe(user => {
-      this.currentUser.set(user);
-    });
-
     this.loadUsers();
   }
 
@@ -57,7 +53,7 @@ export class UserListComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message || 'Erreur lors du chargement des utilisateurs depuis l\'API REST.');
+        this.errorMessage.set(err.error?.message || "Erreur lors du chargement des utilisateurs depuis l'API REST.");
       }
     });
   }
@@ -69,17 +65,16 @@ export class UserListComponent implements OnInit {
   }
 
   onDeleteUser(user: User): void {
-    if (!user.id) return;
-
-    const confirmMsg = `Confirmez-vous la suppression de l'utilisateur "${user.prenom} ${user.nom}" (${user.login}) ?`;
-    if (!confirm(confirmMsg)) return;
+    if (!user.id || !confirm(`Confirmez-vous la suppression de "${user.prenom} ${user.nom}" (${user.login}) ?`)) {
+      return;
+    }
 
     this.isLoading.set(true);
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
         this.successMessage.set(`L'utilisateur #${user.id} (${user.login}) a été supprimé.`);
         setTimeout(() => this.successMessage.set(null), 3500);
-        // Si l'utilisateur connecté est celui supprimé, on déconnecte
+
         if (this.currentUser()?.id === user.id) {
           this.userService.logout();
         }
@@ -87,7 +82,7 @@ export class UserListComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message || 'Erreur lors de la suppression de l\'utilisateur.');
+        this.errorMessage.set(err.error?.message || "Erreur lors de la suppression de l'utilisateur.");
       }
     });
   }
@@ -112,20 +107,17 @@ export class UserListComponent implements OnInit {
     };
 
     this.userService.createUser(newUser).subscribe({
-      next: (res) => {
+      next: () => {
         this.isLoading.set(false);
         this.successMessage.set(`Utilisateur "${newUser.login}" créé avec succès !`);
         setTimeout(() => this.successMessage.set(null), 3500);
-        this.userForm.reset({
-          password: 'Password123!',
-          role: 'Agent de terrain'
-        });
+        this.userForm.reset({ password: 'Password123!', role: 'Agent de terrain' });
         this.showAddForm.set(false);
         this.loadUsers();
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message || 'Erreur lors de la création de l\'utilisateur.');
+        this.errorMessage.set(err.error?.message || "Erreur lors de la création de l'utilisateur.");
       }
     });
   }

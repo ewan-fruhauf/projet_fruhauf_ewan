@@ -1,30 +1,28 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { mockApiInterceptor } from './mock-api.interceptor';
 import { environment } from '../../environments/environment';
 
 describe('mockApiInterceptor', () => {
   let httpClient: HttpClient;
-  let httpTesting: HttpTestingController;
 
   beforeEach(() => {
+    localStorage.clear();
+    (environment as any).mockApi = true;
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([mockApiInterceptor])),
-        provideHttpClientTesting()
+        provideHttpClient(withInterceptors([mockApiInterceptor]))
       ]
     });
 
     httpClient = TestBed.inject(HttpClient);
-    httpTesting = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    httpTesting.verify();
+    localStorage.clear();
   });
 
-  it('devrait intercepter un POST /signup et renvoyer une réponse mockée 201', (done) => {
+  it('devrait intercepter un POST /users et renvoyer une réponse mockée 201', (done) => {
     const payload = {
       login: 'tester',
       email: 'tester@example.com',
@@ -33,7 +31,7 @@ describe('mockApiInterceptor', () => {
       password: 'secretPassword123'
     };
 
-    httpClient.post<any>(`${environment.apiUrl}/signup`, payload).subscribe({
+    httpClient.post<any>(`${environment.apiUrl}/users`, payload).subscribe({
       next: (res) => {
         expect(res.success).toBeTrue();
         expect(res.user.login).toEqual('tester');
@@ -56,7 +54,7 @@ describe('mockApiInterceptor', () => {
       password: 'secretPassword123'
     };
 
-    httpClient.post<any>(`${environment.apiUrl}/signup`, payload).subscribe({
+    httpClient.post<any>(`${environment.apiUrl}/users`, payload).subscribe({
       next: () => {
         fail('Aurait dû échouer avec un code 409');
         done();

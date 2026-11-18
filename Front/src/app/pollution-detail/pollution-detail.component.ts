@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PollutionService } from '../services/pollution.service';
@@ -9,7 +9,8 @@ import { Pollution } from '../models/pollution.model';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './pollution-detail.component.html',
-  styleUrls: ['./pollution-detail.component.css']
+  styleUrls: ['./pollution-detail.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PollutionDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -42,10 +43,7 @@ export class PollutionDetailComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Erreur chargement détail', err);
-        this.errorMessage.set(
-          err?.error?.message || `Impossible de trouver le signalement #${id}.`
-        );
+        this.errorMessage.set(err?.error?.message || `Impossible de trouver le signalement #${id}.`);
         this.isLoading.set(false);
       }
     });
@@ -53,10 +51,9 @@ export class PollutionDetailComponent implements OnInit {
 
   onDelete(): void {
     const p = this.pollution();
-    if (!p) return;
-
-    const confirmDelete = confirm(`Voulez-vous vraiment supprimer définitivement « ${p.titre} » ?`);
-    if (!confirmDelete) return;
+    if (!p || !confirm(`Voulez-vous vraiment supprimer définitivement « ${p.titre} » ?`)) {
+      return;
+    }
 
     this.isDeleting.set(true);
     this.pollutionService.deletePollution(p.id).subscribe({

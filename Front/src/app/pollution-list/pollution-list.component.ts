@@ -1,35 +1,35 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { PollutionService } from '../services/pollution.service';
-import { Pollution, PollutionFilter, PollutionType } from '../models/pollution.model';
+import { Pollution, PollutionType } from '../models/pollution.model';
 
 @Component({
   selector: 'app-pollution-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './pollution-list.component.html',
-  styleUrls: ['./pollution-list.component.css']
+  styleUrls: ['./pollution-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PollutionListComponent implements OnInit {
   private pollutionService = inject(PollutionService);
   private router = inject(Router);
 
-  // État des données avec Signals Angular modernes
+  // État des données avec Signals Angular
   pollutions = signal<Pollution[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
   deletingId = signal<number | string | null>(null);
   feedbackMessage = signal<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Filtres multi-critères
+  // Filtres de recherche
   searchTerm = signal<string>('');
   selectedType = signal<string>('');
   selectedGravite = signal<string>('');
   selectedSort = signal<'recent' | 'ancien' | 'gravite'>('recent');
 
-  // Types disponibles pour le filtrage
   readonly availableTypes: PollutionType[] = [
     'Plastique',
     'Chimique',
@@ -41,7 +41,7 @@ export class PollutionListComponent implements OnInit {
 
   readonly graviteLevels = ['Critique', 'Moyenne', 'Faible'];
 
-  // Signal calculé pour la liste filtrée multi-critères
+  // Liste filtrée et triée recalculée automatiquement quand un filtre change
   filteredPollutions = computed(() => {
     let list = this.pollutions();
     const search = this.searchTerm().trim().toLowerCase();
@@ -49,7 +49,6 @@ export class PollutionListComponent implements OnInit {
     const gravite = this.selectedGravite();
     const sort = this.selectedSort();
 
-    // 1. Filtrage par mot-clé (titre, lieu ou description)
     if (search) {
       list = list.filter(p =>
         p.titre.toLowerCase().includes(search) ||
@@ -58,23 +57,22 @@ export class PollutionListComponent implements OnInit {
       );
     }
 
-    // 2. Filtrage par type
     if (type) {
       list = list.filter(p => p.type === type);
     }
 
-    // 3. Filtrage par gravité
     if (gravite) {
       list = list.filter(p => p.gravite === gravite);
     }
 
-    // 4. Tri
     return [...list].sort((a, b) => {
       if (sort === 'recent') {
         return new Date(b.dateObservation).getTime() - new Date(a.dateObservation).getTime();
-      } else if (sort === 'ancien') {
+      }
+      if (sort === 'ancien') {
         return new Date(a.dateObservation).getTime() - new Date(b.dateObservation).getTime();
-      } else if (sort === 'gravite') {
+      }
+      if (sort === 'gravite') {
         const weight: Record<string, number> = { Critique: 3, Moyenne: 2, Faible: 1 };
         return (weight[b.gravite || 'Moyenne'] || 0) - (weight[a.gravite || 'Moyenne'] || 0);
       }
@@ -86,9 +84,6 @@ export class PollutionListComponent implements OnInit {
     this.loadPollutions();
   }
 
-  /**
-   * Charge la liste des pollutions via le service HTTP
-   */
   loadPollutions(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
@@ -98,17 +93,13 @@ export class PollutionListComponent implements OnInit {
         this.pollutions.set(data);
         this.isLoading.set(false);
       },
-      error: (err) => {
-        console.error('Erreur chargement pollutions', err);
-        this.errorMessage.set('Impossible de charger la liste des pollutions. Veuillez réessayer.');
+      error: () => {
+        this.errorMessage.set('Impossible de charger la liste des pollutions.');
         this.isLoading.set(false);
       }
     });
   }
 
-  /**
-   * Réinitialise tous les filtres de recherche
-   */
   resetFilters(): void {
     this.searchTerm.set('');
     this.selectedType.set('');
@@ -116,14 +107,10 @@ export class PollutionListComponent implements OnInit {
     this.selectedSort.set('recent');
   }
 
-  /**
-   * Supprime une pollution après confirmation
-   */
   onDelete(pollution: Pollution, event: Event): void {
-    event.stopPropagation(); // Évite la navigation vers le détail
+    event.stopPropagation();
 
-    const confirmation = confirm(`Voulez-vous vraiment supprimer le signalement « ${pollution.titre} » ?`);
-    if (!confirmation) {
+    if (!confirm(`Voulez-vous vraiment supprimer le signalement « ${pollution.titre} » ?`)) {
       return;
     }
 
@@ -131,7 +118,6 @@ export class PollutionListComponent implements OnInit {
     this.pollutionService.deletePollution(pollution.id).subscribe({
       next: () => {
         this.deletingId.set(null);
-        // Mise à jour de la liste locale
         this.pollutions.update(list => list.filter(p => p.id !== pollution.id));
         this.showFeedback(`Signalement #${pollution.id} supprimé avec succès.`, 'success');
       },
@@ -142,25 +128,17 @@ export class PollutionListComponent implements OnInit {
     });
   }
 
-  /**
-   * Navigation vers la page de modification
-   */
   onEdit(id: number | string, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/pollutions', id, 'edit']);
   }
 
-  /**
-   * Navigation vers la page de détail
-   */
   goToDetail(id: number | string): void {
     this.router.navigate(['/pollutions', id]);
   }
 
   private showFeedback(text: string, type: 'success' | 'error'): void {
     this.feedbackMessage.set({ text, type });
-    setTimeout(() => {
-      this.feedbackMessage.set(null);
-    }, 4000);
+    setTimeout(() => this.feedbackMessage.set(null), 4000);
   }
 }

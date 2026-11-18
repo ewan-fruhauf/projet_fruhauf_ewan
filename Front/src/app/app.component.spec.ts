@@ -40,20 +40,20 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     const navText = compiled.querySelector('.nav-links')?.textContent;
-    expect(navText).toContain('Signalements');
+    expect(navText).toContain('Pollutions');
     expect(navText).toContain('Déclarer');
-    expect(navText).toContain('Service Client');
+    expect(navText).toContain('Utilisateurs');
+    expect(navText).toContain('Inscription');
   });
 
   it('devrait réinitialiser l\'utilisateur lors de la déconnexion', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    app.currentUser = { login: 'test', nom: 'Nom', prenom: 'Prenom' };
     fixture.detectChanges();
 
     app.logout();
     fixture.detectChanges();
 
-    expect(app.currentUser).toBeNull();
+    expect(app.currentUser()).toBeNull();
   });
 });

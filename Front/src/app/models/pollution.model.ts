@@ -19,11 +19,3 @@ export interface Pollution {
   statut?: PollutionStatut;
   dateCreation?: string;
 }
-
-export interface PollutionFilter {
-  type?: string;
-  searchTerm?: string;
-  dateMin?: string;
-  dateMax?: string;
-  gravite?: string;
-}

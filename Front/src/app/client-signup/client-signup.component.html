@@ -3,18 +3,45 @@
   <!-- Info bandeau environnement API -->
   <div class="api-badge-bar">
     <span class="pulse-indicator"></span>
-    <span class="api-label">API REST Mockée :</span>
-    <code class="api-url">{{ apiUrl }}/signup</code>
+    <span class="api-label">Endpoint API REST :</span>
+    <code class="api-url">{{ apiUrl }}/users</code>
   </div>
+
+  <!-- Alerte affichée quand le Route Guard (TP 05) a bloqué l'accès à une route protégée -->
+  @if (authGuardTriggered() && !currentUser()) {
+    <div class="alert-box error-alert" role="alert" style="margin-bottom: 1.25rem;">
+      <div class="alert-icon">🔒</div>
+      <div class="alert-body">
+        <div class="alert-heading">Route protégée par AuthGuard (TP 05)</div>
+        <p class="alert-text">
+          Vous devez être connecté pour accéder à cette page. Créez un compte ci-dessous ou reconnectez-vous en un clic :
+        </p>
+        <div class="alert-actions">
+          <button type="button" class="cyber-button" (click)="quickLogin()">
+            ⚡ Reconnexion rapide (Alex Martin — Agent)
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- VUE 1 : FORMULAIRE D'INSCRIPTION -->
   @if (!isSubmitted()) {
     <div class="form-wrapper">
       
       <div class="header-intro">
-        <h2 class="form-title">Créer un compte client</h2>
-        <p class="form-subtitle">Enregistrement via service HTTP Angular, injection moderne & API mockée</p>
+        <h2 class="form-title">Créer un compte utilisateur</h2>
+        <p class="form-subtitle">Enregistrement via UserService (POST /api/users) & connexion automatique</p>
       </div>
+
+      <!-- Bouton de reconnexion rapide si l'utilisateur s'est déconnecté -->
+      @if (!currentUser() && !authGuardTriggered()) {
+        <div style="margin-bottom: 1.25rem; text-align: center;">
+          <button type="button" class="btn-ghost" (click)="quickLogin()">
+            ⚡ Déjà inscrit ? Reconnexion rapide avec le compte Agent de démonstration
+          </button>
+        </div>
+      }
 
       <!-- Message d'erreur HTTP si la requête échoue -->
       @if (errorMessage()) {
@@ -174,7 +201,7 @@
           </button>
 
           <p class="mock-hint">
-            💡 <em>Note pour l'évaluation : L'intercepteur HTTP simule l'API REST. Saisissez l'identifiant <code>error</code> pour tester la gestion des erreurs HTTP (409 Conflict).</em>
+            💡 <em>Astuce : Saisissez l'identifiant <code>error</code> pour tester la gestion des erreurs HTTP (409 Conflict).</em>
           </p>
         </div>
 
@@ -188,7 +215,7 @@
       <div class="success-banner">
         <div class="success-icon">✓</div>
         <h3 class="success-title">Inscription confirmée par le service !</h3>
-        <p class="success-subtitle">Le service client a complété l'appel HTTP avec succès.</p>
+        <p class="success-subtitle">L'utilisateur a été créé et votre session est maintenant active.</p>
       </div>
 
       <div class="result-card">

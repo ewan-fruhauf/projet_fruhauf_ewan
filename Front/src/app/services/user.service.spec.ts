@@ -1,37 +1,39 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ClientService } from './client.service';
+import { UserService } from './user.service';
 import { environment } from '../../environments/environment';
-import { ClientSignUp, ClientResponse } from '../models/client.model';
+import { UserSignUp, UserResponse } from '../models/user.model';
 
-describe('ClientService', () => {
-  let service: ClientService;
+describe('UserService', () => {
+  let service: UserService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
+    sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [
-        ClientService,
+        UserService,
         provideHttpClient(),
         provideHttpClientTesting()
       ]
     });
 
-    service = TestBed.inject(ClientService);
+    service = TestBed.inject(UserService);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
     httpTesting.verify();
+    sessionStorage.clear();
   });
 
   it('devrait être créé', () => {
     expect(service).toBeTruthy();
   });
 
-  it('devrait envoyer une requête POST pour inscrire un utilisateur avec l\'URL d\'environnement', () => {
-    const mockUser: ClientSignUp = {
+  it('devrait envoyer une requête POST /users pour créer un utilisateur', () => {
+    const mockUser: UserSignUp = {
       login: 'agent_eco',
       email: 'test@example.com',
       nom: 'Dupont',
@@ -39,7 +41,7 @@ describe('ClientService', () => {
       password: 'secretPassword123'
     };
 
-    const mockResponse: ClientResponse = {
+    const mockResponse: UserResponse = {
       success: true,
       message: 'Utilisateur créé avec succès',
       user: {
@@ -51,16 +53,19 @@ describe('ClientService', () => {
       }
     };
 
-    service.signUp(mockUser).subscribe((res) => {
+    service.createUser(mockUser).subscribe((res) => {
       expect(res).toEqual(mockResponse);
       expect(res.success).toBeTrue();
     });
 
-    const expectedUrl = `${environment.apiUrl}/signup`;
-    const req = httpTesting.expectOne(expectedUrl);
+    const req = httpTesting.expectOne(`${environment.apiUrl}/users`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(mockUser);
-
     req.flush(mockResponse);
+  });
+
+  it('devrait déconnecter l\'utilisateur avec logout()', () => {
+    service.logout();
+    expect(service.currentUser()).toBeNull();
   });
 });

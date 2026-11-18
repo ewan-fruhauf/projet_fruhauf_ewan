@@ -1,17 +1,13 @@
-import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ClientService } from '../services/client.service';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UserService } from '../services/user.service';
-import { ClientSignUp, ClientResponse } from '../models/client.model';
+import { UserSignUp, UserResponse } from '../models/user.model';
 import { environment } from '../../environments/environment';
 
-import { Router, RouterModule } from '@angular/router';
-
-/**
- * Validateur personnalisé pour vérifier que le mot de passe et sa confirmation correspondent.
- */
+// Vérifie que le mot de passe et sa confirmation sont identiques
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
   const confirm = group.get('confirmPassword')?.value;
@@ -23,30 +19,25 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './client-signup.component.html',
-  styleUrls: ['./client-signup.component.css']
+  styleUrls: ['./client-signup.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ClientSignupComponent {
-  private router = inject(Router);
-
-  // Émission de l'événement lors d'une inscription réussie
-  @Output() signupSuccess = new EventEmitter<ClientResponse>();
-
-  // 1. Injection de dépendances moderne via inject() (recommandation Séance 3)
-  private clientService = inject(ClientService);
+export class ClientSignupComponent implements OnInit {
   private userService = inject(UserService);
   private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
-  // Exposition de la configuration d'environnement pour affichage informatif
   readonly apiUrl = environment.apiUrl;
+  readonly currentUser = this.userService.currentUser;
 
-  // 2. Gestion d'état moderne via Angular Signals (recommandation Séance 3)
   isLoading = signal<boolean>(false);
   isSubmitted = signal<boolean>(false);
-  apiResponse = signal<ClientResponse | null>(null);
+  apiResponse = signal<UserResponse | null>(null);
   errorMessage = signal<string | null>(null);
   httpStatusCode = signal<number | null>(null);
+  authGuardTriggered = signal<boolean>(false);
 
-  // Formulaire réactif avec validations
   signupForm: FormGroup = this.fb.group({
     login: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
@@ -56,23 +47,40 @@ export class ClientSignupComponent {
     confirmPassword: ['', Validators.required]
   }, { validators: passwordMatchValidator });
 
-  /**
-   * Soumission du formulaire d'inscription.
-   * Déclenche l'appel HTTP encapsulé dans ClientService.
-   */
+  ngOnInit(): void {
+    // Détecte si l'utilisateur a été redirigé ici par le Guard (authGuard)
+    const authRequired = this.route.snapshot.queryParamMap.get('authRequired');
+    if (authRequired === 'true' && !this.currentUser()) {
+      this.authGuardTriggered.set(true);
+    }
+  }
+
+  // Connexion rapide en 1 clic (pratique pour tester le Guard sans remplir tout le formulaire)
+  quickLogin(): void {
+    this.userService.setCurrentUser({
+      id: 1,
+      login: 'agent_eco',
+      nom: 'Martin',
+      prenom: 'Alex',
+      role: 'Agent de terrain',
+      email: 'alex.martin@terrashield.org'
+    });
+    this.authGuardTriggered.set(false);
+    this.router.navigate(['/pollutions']);
+  }
+
   onSubmit(): void {
     if (this.signupForm.invalid) {
       this.signupForm.markAllAsTouched();
       return;
     }
 
-    // Réinitialisation des états d'erreur/succès et passage en chargement
     this.isLoading.set(true);
     this.errorMessage.set(null);
     this.httpStatusCode.set(null);
 
     const formValues = this.signupForm.value;
-    const clientData: ClientSignUp = {
+    const newUserData: UserSignUp = {
       login: formValues.login.trim(),
       email: formValues.email.trim(),
       nom: formValues.nom.trim(),
@@ -80,65 +88,31 @@ export class ClientSignupComponent {
       password: formValues.password
     };
 
-    // 3. Consommation de l'Observable retourné par le service (Observables & RxJS - Séance 3)
-    this.clientService.signUp(clientData).subscribe({
-      next: (response: ClientResponse) => {
+    this.userService.createUser(newUserData).subscribe({
+      next: (response: UserResponse) => {
         this.isLoading.set(false);
         this.isSubmitted.set(true);
+        this.authGuardTriggered.set(false);
         this.apiResponse.set(response);
         if (response.user) {
           this.userService.setCurrentUser(response.user);
         }
-        // Émission pour redirection automatique vers la plateforme
-        this.signupSuccess.emit(response);
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading.set(false);
         this.httpStatusCode.set(error.status);
 
         if (error.status === 0) {
-          this.errorMessage.set(
-            `Impossible de joindre le serveur API à ${this.apiUrl}/signup. Le backend est probablement hors ligne.`
-          );
+          this.errorMessage.set(`Impossible de joindre le serveur API à ${this.apiUrl}/users.`);
         } else if (error.error?.message) {
           this.errorMessage.set(`Erreur ${error.status} : ${error.error.message}`);
         } else {
-          this.errorMessage.set(`Erreur HTTP ${error.status} (${error.statusText || 'Échec de la requête'})`);
+          this.errorMessage.set(`Erreur HTTP ${error.status}`);
         }
       }
     });
   }
 
-  /**
-   * Permet de simuler un retour API réussi pour tester l'interface
-   * si aucun backend n'est encore démarré localement.
-   */
-  simulateMockSuccess(): void {
-    const formValues = this.signupForm.value;
-    const mockResponse: ClientResponse = {
-      success: true,
-      message: 'Utilisateur inscrit avec succès (Simulation)',
-      user: {
-        id: Math.floor(Math.random() * 9000) + 1000,
-        login: formValues.login || 'utilisateur_test',
-        email: formValues.email || 'test@example.com',
-        nom: formValues.nom || 'Dupont',
-        prenom: formValues.prenom || 'Alex',
-        createdAt: new Date().toISOString()
-      }
-    };
-
-    this.isLoading.set(false);
-    this.errorMessage.set(null);
-    this.httpStatusCode.set(201);
-    this.isSubmitted.set(true);
-    this.apiResponse.set(mockResponse);
-    this.signupSuccess.emit(mockResponse);
-  }
-
-  /**
-   * Réinitialise le formulaire et l'état réactif du composant.
-   */
   onReset(): void {
     this.signupForm.reset();
     this.isSubmitted.set(false);

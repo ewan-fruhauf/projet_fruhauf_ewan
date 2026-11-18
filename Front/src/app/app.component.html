@@ -55,21 +55,26 @@
         <span class="api-env-label">API REST Node.js</span>
       </div>
 
-      @if (currentUser) {
-        <div class="user-pill" [title]="'Connecté en tant que ' + currentUser.role">
+      @if (currentUser(); as user) {
+        <div class="user-pill" [title]="'Connecté en tant que ' + (user.role || 'Agent')">
           <span class="user-avatar">🟢</span>
           <span class="user-text">
-            {{ currentUser.prenom }} {{ currentUser.nom }} ({{ currentUser.role || 'Agent' }})
+            {{ user.prenom }} {{ user.nom }} ({{ user.role || 'Agent' }})
           </span>
-          <button type="button" class="btn-logout-mini" (click)="logout()" title="Déconnexion">
+          <button type="button" class="btn-logout-mini" (click)="logout()" title="Se déconnecter (pour tester le Guard)">
             ✕
           </button>
         </div>
+      } @else {
+        <a routerLink="/signup" class="user-pill" style="text-decoration: none; cursor: pointer;" title="Cliquez pour vous connecter">
+          <span class="user-avatar">🔒</span>
+          <span class="user-text">Non connecté</span>
+        </a>
       }
     </div>
   </header>
 
-  <!-- CONTENU PRINCIPAL (ROUTÉ) -->
+  <!-- CONTENU PRINCIPAL (CHARGÉ EN LAZY LOADING) -->
   <main class="app-content-wrapper">
     <div class="cyber-container app-inner-container">
       <div class="glass-panel main-panel">
@@ -81,7 +86,7 @@
   <!-- PIED DE PAGE -->
   <footer class="app-footer">
     <div class="footer-content">
-      <span>TP 04 — Développement d’une API REST Node.js pour la gestion des pollutions et des utilisateurs</span>
+      <span>TP 05 — Route, Guards, Lazy Loading & Optimisation OnPush</span>
       <span class="footer-sep">•</span>
       <span>API Endpoints : <code>{{ apiUrl }}/pollutions</code> & <code>{{ apiUrl }}/users</code></span>
     </div>

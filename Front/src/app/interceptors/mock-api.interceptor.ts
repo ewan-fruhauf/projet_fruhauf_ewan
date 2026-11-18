@@ -1,130 +1,81 @@
-import { HttpInterceptorFn, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { delay, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Pollution } from '../models/pollution.model';
 import { User } from '../models/user.model';
 import { STORAGE_KEY, USERS_STORAGE_KEY, INITIAL_POLLUTIONS, INITIAL_USERS } from './mock-data';
 
-function ok<T>(body: T, status = 200, delayMs = 200) {
-  return of(new HttpResponse({
-    status,
-    statusText: status === 201 ? 'Created' : 'OK',
-    body
-  })).pipe(delay(delayMs));
+// Helpers simples pour renvoyer une réponse HTTP simulée
+function ok<T>(body: T, status = 200) {
+  return of(new HttpResponse({ status, body })).pipe(delay(150));
 }
 
-function notFound(message: string, url: string) {
-  return throwError(() => new HttpErrorResponse({
-    status: 404,
-    statusText: 'Not Found',
-    error: { message },
-    url
-  })).pipe(delay(150));
+function httpError(status: number, message: string, url: string) {
+  return throwError(() => new HttpErrorResponse({ status, error: { message }, url })).pipe(delay(150));
 }
 
-function errorResponse(status: number, statusText: string, message: string, url: string) {
-  return throwError(() => new HttpErrorResponse({
-    status,
-    statusText,
-    error: { message },
-    url
-  })).pipe(delay(200));
+// Récupère l'ID situé après le nom de la ressource (ex: "/api/pollutions/42" -> "42")
+function getIdAfter(url: string, segment: string): string | null {
+  const cleanUrl = url.split('?')[0];
+  const parts = cleanUrl.split(`/${segment}/`);
+  return parts.length > 1 && parts[1] ? parts[1] : null;
 }
 
+// Lecture et sauvegarde dans le localStorage du navigateur
 function loadPollutions(): Pollution[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) {
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.warn('[Mock API] Erreur lors de la lecture du localStorage pollutions', err);
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try { return JSON.parse(raw); } catch { /* ignore */ }
   }
-  savePollutions(INITIAL_POLLUTIONS);
-  return INITIAL_POLLUTIONS;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_POLLUTIONS));
+  return [...INITIAL_POLLUTIONS];
 }
 
 function savePollutions(data: Pollution[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (err) {
-    console.error('[Mock API] Erreur lors de l\'enregistrement dans localStorage pollutions', err);
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 function loadUsers(): User[] {
-  try {
-    const raw = localStorage.getItem(USERS_STORAGE_KEY);
-    if (raw !== null) {
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.warn('[Mock API] Erreur lors de la lecture du localStorage users', err);
+  const raw = localStorage.getItem(USERS_STORAGE_KEY);
+  if (raw) {
+    try { return JSON.parse(raw); } catch { /* ignore */ }
   }
-  saveUsers(INITIAL_USERS);
-  return INITIAL_USERS;
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+  return [...INITIAL_USERS];
 }
 
 function saveUsers(data: User[]): void {
-  try {
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(data));
-  } catch (err) {
-    console.error('[Mock API] Erreur lors de l\'enregistrement dans localStorage users', err);
-  }
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(data));
 }
 
-/**
- * Intercepteur HTTP pour simuler l'ensemble des endpoints REST :
- * - /api/users (GET, POST, DELETE, POST /login)
- * - /api/pollutions (GET, GET /:id, POST, PUT, DELETE)
- */
-export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
-  const isMockEnabled = (environment as any).mockApi !== false;
+// Logique de simulation des routes /users et /pollutions
+function simulateApi(req: HttpRequest<unknown>) {
+  // --- 1. ROUTES UTILISATEURS (/api/users) ---
+  if (req.url.includes('/users') || req.url.endsWith('/signup')) {
+    const users = loadUsers();
 
-  if (!isMockEnabled) {
-    return next(req);
-  }
-
-  // --- 1. GESTION DES UTILISATEURS : /api/users & /api/signup & /api/login (TP 04) ---
-  if (req.url.includes('/users') || req.url.endsWith('/signup') || req.url.endsWith('/login')) {
-    let users = loadUsers();
-
-    // Authentification fictive : POST /users/login ou POST /login
-    if (req.method === 'POST' && (req.url.endsWith('/login') || req.url.includes('/users/login'))) {
+    // POST /api/users/login : Connexion
+    if (req.method === 'POST' && req.url.endsWith('/login')) {
       const body = req.body as any;
       const found = users.find(u => u.login === body?.login || u.email === body?.login);
       if (!found) {
-        return errorResponse(401, 'Unauthorized', 'Identifiants invalides (utilisateur non trouvé)', req.url);
+        return httpError(401, 'Identifiants invalides (utilisateur non trouvé)', req.url);
       }
-      return ok({
-        success: true,
-        message: 'Authentification réussie via API mockée',
-        user: {
-          id: found.id,
-          login: found.login,
-          email: found.email,
-          nom: found.nom,
-          prenom: found.prenom,
-          role: found.role
-        }
-      }, 200, 200);
+      return ok({ success: true, message: 'Authentification réussie', user: found });
     }
 
-    // Création : POST /users ou POST /signup
-    if (req.method === 'POST' && (req.url.endsWith('/users') || req.url.endsWith('/signup'))) {
+    // POST /api/users : Création d'un utilisateur
+    if (req.method === 'POST') {
       const body = req.body as any;
-
       if (body?.login === 'error' || body?.email === 'error@test.com') {
-        return errorResponse(409, 'Conflict', "Cet identifiant est déjà utilisé (Simulation d'erreur HTTP 409)", req.url);
+        return httpError(409, 'Cet identifiant est déjà utilisé (Code 409 Conflict)', req.url);
+      }
+      if (users.some(u => u.login === body?.login)) {
+        return httpError(409, `Le login "${body?.login}" est déjà pris.`, req.url);
       }
 
-      const existing = users.find(u => u.login === body?.login);
-      if (existing) {
-        return errorResponse(409, 'Conflict', `Le login "${body?.login}" est déjà pris.`, req.url);
-      }
-
-      const maxId = users.reduce((max, u) => (Number(u.id) > max ? Number(u.id) : max), 0);
+      const maxId = users.reduce((max, u) => Math.max(max, Number(u.id) || 0), 0);
       const newUser: User = {
         id: maxId + 1,
         login: body?.login,
@@ -137,131 +88,120 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
 
       users.push(newUser);
       saveUsers(users);
-
-      return ok({
-        success: true,
-        message: 'Utilisateur créé avec succès via API mockée',
-        user: newUser
-      }, 201, 250);
+      return ok({ success: true, message: 'Utilisateur créé avec succès', user: newUser }, 201);
     }
 
-    // Lecture : GET /users ou GET /users/:id
-    if (req.method === 'GET' && req.url.includes('/users')) {
-      const urlParts = req.url.split('/users');
-      const pathAfterUsers = urlParts[1] || '';
-      const idMatch = pathAfterUsers.match(/^\/([^/?#]+)/);
-      const targetId = idMatch ? idMatch[1] : null;
-
-      if (!targetId) {
+    // GET /api/users ou GET /api/users/:id
+    if (req.method === 'GET') {
+      const id = getIdAfter(req.url, 'users');
+      if (!id) {
         return ok(users);
       }
-      const found = users.find(u => String(u.id) === String(targetId));
-      return found ? ok(found, 200, 150) : notFound(`Utilisateur #${targetId} introuvable`, req.url);
+      const found = users.find(u => String(u.id) === id);
+      return found ? ok(found) : httpError(404, `Utilisateur #${id} introuvable`, req.url);
     }
 
-    // Suppression : DELETE /users/:id
-    if (req.method === 'DELETE' && req.url.includes('/users/')) {
-      const urlParts = req.url.split('/users/');
-      const targetId = urlParts[1]?.split(/[?#]/)[0];
-      const initialLength = users.length;
-      users = users.filter(u => String(u.id) !== String(targetId));
-
-      if (users.length < initialLength) {
-        saveUsers(users);
-        return ok({
-          success: true,
-          message: `Utilisateur #${targetId} supprimé avec succès`,
-          id: targetId
-        }, 200, 200);
+    // DELETE /api/users/:id
+    if (req.method === 'DELETE') {
+      const id = getIdAfter(req.url, 'users');
+      const remaining = users.filter(u => String(u.id) !== id);
+      if (remaining.length === users.length) {
+        return httpError(404, `Utilisateur #${id} introuvable`, req.url);
       }
-      return notFound(`Impossible de supprimer : Utilisateur #${targetId} introuvable`, req.url);
+      saveUsers(remaining);
+      return ok({ success: true, message: `Utilisateur #${id} supprimé`, id });
     }
   }
 
-  // --- 2. GESTION DES POLLUTIONS : CRUD /pollutions (TP 03 & TP 04) ---
-  if (req.url.includes('/pollutions') || req.url.includes('/pollution')) {
-    const urlParts = req.url.includes('/pollutions') ? req.url.split('/pollutions') : req.url.split('/pollution');
-    const pathAfterPollutions = urlParts[1] || '';
-    const idMatch = pathAfterPollutions.match(/^\/([^/?#]+)/);
-    const targetId = idMatch ? idMatch[1] : null;
+  // --- 2. ROUTES POLLUTIONS (/api/pollutions) ---
+  if (req.url.includes('/pollutions')) {
+    const pollutions = loadPollutions();
+    const id = getIdAfter(req.url, 'pollutions');
 
-    let pollutions = loadPollutions();
-
-    switch (req.method) {
-      case 'GET': {
-        if (!targetId) {
-          return ok(pollutions);
-        }
-        const found = pollutions.find(p => String(p.id) === String(targetId));
-        return found ? ok(found, 200, 150) : notFound(`Pollution #${targetId} introuvable`, req.url);
+    // GET /api/pollutions ou GET /api/pollutions/:id
+    if (req.method === 'GET') {
+      if (!id) {
+        return ok(pollutions);
       }
+      const found = pollutions.find(p => String(p.id) === id);
+      return found ? ok(found) : httpError(404, `Pollution #${id} introuvable`, req.url);
+    }
 
-      case 'POST': {
-        const body = req.body as Partial<Pollution>;
-        const maxId = pollutions.reduce((max, p) => (Number(p.id) > max ? Number(p.id) : max), 0);
-        const newPollution: Pollution = {
-          id: maxId + 1,
-          titre: body.titre || 'Signalement sans titre',
-          type: (body.type as any) || 'Autre',
-          description: body.description || '',
-          lieu: body.lieu || 'Non précisé',
-          dateObservation: body.dateObservation || new Date().toISOString().split('T')[0],
-          latitude: Number(body.latitude) || 0,
-          longitude: Number(body.longitude) || 0,
-          photoUrl: body.photoUrl || undefined,
-          auteur: body.auteur || 'Agent anonyme',
-          gravite: body.gravite || 'Moyenne',
-          statut: body.statut || 'En attente',
-          dateCreation: new Date().toISOString()
-        };
+    // POST /api/pollutions : Ajouter une pollution
+    if (req.method === 'POST') {
+      const body = req.body as Partial<Pollution>;
+      const maxId = pollutions.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0);
+      const newPollution: Pollution = {
+        id: maxId + 1,
+        titre: body.titre || 'Signalement sans titre',
+        type: body.type || 'Autre',
+        description: body.description || '',
+        lieu: body.lieu || 'Non précisé',
+        dateObservation: body.dateObservation || new Date().toISOString().split('T')[0],
+        latitude: Number(body.latitude) || 0,
+        longitude: Number(body.longitude) || 0,
+        photoUrl: body.photoUrl || undefined,
+        auteur: body.auteur || 'Agent anonyme',
+        gravite: body.gravite || 'Moyenne',
+        statut: body.statut || 'En attente',
+        dateCreation: new Date().toISOString()
+      };
 
-        pollutions.unshift(newPollution);
-        savePollutions(pollutions);
-        return ok(newPollution, 201, 250);
+      pollutions.unshift(newPollution);
+      savePollutions(pollutions);
+      return ok(newPollution, 201);
+    }
+
+    // PUT /api/pollutions/:id : Modifier une pollution
+    if (req.method === 'PUT' || req.method === 'PATCH') {
+      const index = pollutions.findIndex(p => String(p.id) === id);
+      if (index === -1) {
+        return httpError(404, `Pollution #${id} introuvable`, req.url);
       }
+      pollutions[index] = {
+        ...pollutions[index],
+        ...(req.body as object),
+        id: pollutions[index].id
+      };
+      savePollutions(pollutions);
+      return ok(pollutions[index]);
+    }
 
-      case 'PUT':
-      case 'PATCH': {
-        if (!targetId) {
-          return errorResponse(400, 'Bad Request', 'ID manquant pour la modification', req.url);
-        }
-        const index = pollutions.findIndex(p => String(p.id) === String(targetId));
-        if (index === -1) {
-          return notFound(`Impossible de modifier : Pollution #${targetId} introuvable`, req.url);
-        }
-
-        pollutions[index] = {
-          ...pollutions[index],
-          ...(req.body as object),
-          id: pollutions[index].id
-        };
-
-        savePollutions(pollutions);
-        return ok(pollutions[index], 200, 200);
+    // DELETE /api/pollutions/:id : Supprimer une pollution
+    if (req.method === 'DELETE') {
+      const remaining = pollutions.filter(p => String(p.id) !== id);
+      if (remaining.length === pollutions.length) {
+        return httpError(404, `Pollution #${id} introuvable`, req.url);
       }
-
-      case 'DELETE': {
-        if (!targetId) {
-          return errorResponse(400, 'Bad Request', 'ID manquant pour la suppression', req.url);
-        }
-        const initialLength = pollutions.length;
-        pollutions = pollutions.filter(p => String(p.id) !== String(targetId));
-
-        if (pollutions.length < initialLength) {
-          savePollutions(pollutions);
-          return ok({
-            success: true,
-            message: `Pollution #${targetId} supprimée avec succès`,
-            id: targetId
-          }, 200, 200);
-        }
-        return notFound(`Impossible de supprimer : Pollution #${targetId} introuvable`, req.url);
-      }
-
-      default:
-        return next(req);
+      savePollutions(remaining);
+      return ok({ success: true, message: `Pollution #${id} supprimée`, id });
     }
   }
 
-  return next(req);
+  return null;
+}
+
+/**
+ * Intercepteur HTTP :
+ * - En mode développement (mockApi: true), simule directement l'API REST.
+ * - En mode production (mockApi: false), appelle le serveur Node.js/PostgreSQL sur Render,
+ *   et bascule automatiquement sur le mock local si le serveur Render gratuit est en veille.
+ */
+export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
+  if (environment.mockApi) {
+    return simulateApi(req) ?? next(req);
+  }
+
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      // Si le serveur Render gratuit est endormi ou injoignable (status 0 ou 502/503/504)
+      if (error.status === 0 || error.status >= 502) {
+        const fallback = simulateApi(req);
+        if (fallback) {
+          return fallback;
+        }
+      }
+      return throwError(() => error);
+    })
+  );
 };
