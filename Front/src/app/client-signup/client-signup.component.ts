@@ -48,11 +48,11 @@ export class ClientSignupComponent implements OnInit {
   }, { validators: passwordMatchValidator });
 
   ngOnInit(): void {
-    // Détecte si l'utilisateur a été redirigé ici par le Guard (authGuard)
-    const authRequired = this.route.snapshot.queryParamMap.get('authRequired');
-    if (authRequired === 'true' && !this.currentUser()) {
-      this.authGuardTriggered.set(true);
-    }
+    // Écoute réactive des paramètres d'URL pour détecter à tout moment un blocage par AuthGuard
+    this.route.queryParamMap.subscribe(params => {
+      const authRequired = params.get('authRequired') === 'true';
+      this.authGuardTriggered.set(authRequired && !this.currentUser());
+    });
   }
 
   // Connexion rapide en 1 clic (pratique pour tester le Guard sans remplir tout le formulaire)

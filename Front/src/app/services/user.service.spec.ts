@@ -69,3 +69,4 @@ describe('UserService', () => {
     expect(service.currentUser()).toBeNull();
   });
 });
+
