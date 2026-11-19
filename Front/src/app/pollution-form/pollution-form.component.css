@@ -1,60 +1,169 @@
-.form-row {
-    display: flex;
-    gap: 20px;
+.form-wrapper {
+  animation: fadeIn 0.3s ease-out;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-header-bar {
+  margin-bottom: 24px;
+}
+
+.badge-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.form-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.form-subtitle {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+/* Alertes */
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.fetching-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 30px;
+  color: var(--text-dim);
+}
+
+/* Groupes de champs */
+.field-group {
+  margin-bottom: 18px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.dual-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 @media (max-width: 600px) {
-    .form-row { flex-direction: column; gap: 0; }
+  .dual-row {
+    grid-template-columns: 1fr;
+  }
 }
 
-.input-group {
-    position: relative;
-    width: 100%;
-    margin-bottom: 25px;
+.input-container input,
+.input-container select,
+.input-container textarea {
+  width: 100%;
 }
 
-/* Form inputs are styled globally in styles.css now, but let's ensure labels work */
-label {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-dim);
-    transition: all 0.2s ease;
-    pointer-events: none;
-    font-size: 0.95rem;
+.field-error {
+  color: var(--error-color, #ef4444);
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 
-input:focus ~ label, input:not(:placeholder-shown) ~ label,
-textarea:focus ~ label, textarea:not(:placeholder-shown) ~ label {
-    top: -10px;
-    left: 10px;
-    font-size: 0.75rem;
-    color: var(--primary-color);
-    background: var(--panel-bg);
-    padding: 0 5px;
-    font-weight: 500;
+/* Boutons d'action */
+.actions-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Specific fix for date and select fields if they don't use placeholder */
-select:focus ~ label, select:valid ~ label {
-    top: -10px;
-    left: 10px;
-    font-size: 0.75rem;
-    color: var(--primary-color);
-    background: var(--panel-bg);
-    padding: 0 5px;
-    font-weight: 500;
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-dim);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-input[type="date"] {
-    color: var(--text-main);
-}
-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: none; /* Removed the invert from cyberpunk theme */
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
 }
 
-.error {
-    color: var(--error-color);
-    font-size: 0.85rem;
-    margin-top: 5px;
+.btn-submit {
+  width: auto;
+  min-width: 200px;
+  margin-top: 0;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
