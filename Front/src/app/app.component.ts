@@ -1,22 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PollutionFormComponent } from './pollution-form/pollution-form.component';
-import { PollutionRecapComponent } from './pollution-recap/pollution-recap.component';
+import { RouterModule, Router } from '@angular/router';
+import { environment } from '../environments/environment';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, PollutionFormComponent, PollutionRecapComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  title = 'Front';
-  isSubmitted = false;
-  formData: any = null;
+  private userService = inject(UserService);
+  private router = inject(Router);
 
-  onFormSubmit(data: any) {
-    this.formData = data;
-    this.isSubmitted = true;
+  readonly apiUrl = environment.apiUrl;
+
+  // Lecture directe du signal de l'utilisateur connecté depuis UserService
+  readonly currentUser = this.userService.currentUser;
+
+  logout(): void {
+    this.userService.logout();
+    this.router.navigate(['/signup']);
   }
 }
